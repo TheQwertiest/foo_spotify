@@ -57,7 +57,12 @@ cache:
 
 # scripts that run after cloning repository
 install:
-  - vcpkg install cpprestsdk:x86-windows-static
+  - cd C:\Tools\vcpkg
+  - git pull
+  - .\bootstrap-vcpkg.bat
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - vcpkg remove --outdated --recurse
+  - vcpkg install cpprestsdk:x86-windows-static-v142
   - vcpkg integrate install
   - py -u scripts\setup.py
 

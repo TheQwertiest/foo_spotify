@@ -11,6 +11,7 @@ import download_submodules
 import patch_submodules
 import generate_commit_hash_header
 import generate_source_link_config
+import generate_third_party
 
 PathLike = Union[str, Path]
 
@@ -38,6 +39,7 @@ def setup( skip_submodules_download,
             call_decorator("Patching submodules")(patch_submodules.patch)()
     call_decorator("Commit hash header generation")(generate_commit_hash_header.generate_header)()
     call_decorator("SourceLink configuration file generation")(generate_source_link_config.generate_config)()
+    call_decorator("3rd-party notices generation")(generate_third_party.generate)()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Setup project')
