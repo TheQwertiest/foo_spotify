@@ -1,12 +1,11 @@
 #pragma once
 
 #include <nonstd/span.hpp>
+#include <qwr/file_helpers.h>
 
 #include <filesystem>
 #include <memory>
 #include <mutex>
-
-#include <qwr/file_helpers.h>
 
 namespace sptf
 {
@@ -42,7 +41,7 @@ public:
 
         std::lock_guard lock( cacheMutex_ );
 
-        const auto filePath = path::WebApiCache() / cacheSubdir_ / fmt::format( "{}.json", id );
+        const auto filePath = GetCachedPath( id );
         if ( !fs::exists( filePath ) )
         {
             return std::nullopt;
@@ -64,7 +63,7 @@ private:
     {
         namespace fs = std::filesystem;
 
-        const auto filePath = path::WebApiCache() / cacheSubdir_ / fmt::format( "{}.json", object->id );
+        const auto filePath = GetCachedPath( object->id );
         if ( fs::exists( filePath ) )
         {
             if ( !force )
@@ -76,8 +75,11 @@ private:
 
         fs::create_directories( filePath.parent_path() );
         qwr::file::WriteFile( filePath, nlohmann::json( *object ).dump( 2 ) );
-        
-        return;
+    }
+
+    std::filesystem::path GetCachedPath( const std::string& id ) const
+    {
+        return path::WebApiCache() / "data" / cacheSubdir_ / fmt::format( "{}.json", id );
     }
 
 private:

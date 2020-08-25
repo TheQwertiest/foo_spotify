@@ -16,7 +16,7 @@ fs::path WebApi_ImageCache::GetImage( const std::string& id, const std::string& 
 {
     std::lock_guard lock( cacheMutex_ );
 
-    const auto imagePath = path::WebApiCache() / cacheSubdir_ / fmt::format( "{}.jpeg", id );
+    const auto imagePath = path::WebApiCache() / "images" / cacheSubdir_ / fmt::format( "{}.jpeg", id );
     if ( !fs::exists( imagePath ) )
     {
         fs::create_directories( imagePath.parent_path() );
