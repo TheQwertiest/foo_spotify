@@ -1,0 +1,491 @@
+Version 12
+
+	Added Android support.
+
+	Added functionality for controlling scrobbling.
+
+	Added function sp_session_user_name, suitable for using
+	in conjunction with the credentials_blob_updated callback.
+
+	Added connectionstate_updated callback.
+
+	Added support for low- and high-res images.
+
+	Fixed a bug where libspotify would crash on reusing credentials
+	when password had been changed.
+
+	Fixed a bug where sp_search_total_playlists would always return 0.
+
+	Fixed apparently random crash on multi-core ARM devices.
+
+	Various bug fixes.
+
+Version 11
+
+	The end_of_track() callback in session has changed and is now
+	invoked on the main thread. Depending on how your application
+	use this callback some change might be necessary.
+
+	Artist browse when used in SP_ARTISTBROWSE_NO_TRACKS or
+	SP_ARTISTBROWSE_NO_ALBUMS also includes a list of top tracks for the
+	Artist.
+
+	The SP_ARTISTBROWSE_FULL mode has been deprecated and will be
+	removed in a future release.
+
+	Artist browse have been improved with tophit tracks.
+	See sp_artistbrowse_tophit_track() and
+	sp_artistbrowse_num_tophit_tracks()
+
+	New method sp_session_flush_caches().  This will make libspotify
+	write all data that is meant to be stored on disk to the disk
+	immediately. Libspotify does this periodically by itself and also
+	on logout. So under normal conditions this should never need to be
+	used.
+
+	Removed support for Mac OS X - PowerPC.
+
+	New callback, credentials_blob_updated() has been added.
+	This callback will be invoked when a login blob has been received
+	by the client. You can use this blob to relogin a user (via
+	sp_session_login()) much like the remember_me argument.
+	The difference between remember_me and the blob callback is that
+	the blob callback allows multiple users to be relogged in by
+	having the application store a blob for each user.
+	Useful if your application supports multiple users
+
+	sp_track_get_playable() will return the track that would actually
+	be played if a track is "linked". Linked tracks are redirect
+	from an unplayable track to a track on a different album (which is
+	available in the currently logged in user's region)
+	Normally, your application does not need to worry about this but
+	the function is here for completeness.
+
+	The radio has been removed. The reason for this is that the
+	radio features have been redesigned in the Spotify backend.
+
+	A new feature have been added that allows a user to see
+	the number of new tracks added on a subscribed playlist.
+	sp_playlistcontainer_get_unseen_tracks() returns number of new
+	tracks (and optionally the tracks themselves)
+	sp_playlistcontainer_clear_unseen_tracks() can be used to clear
+	the unseen track counter.
+	This feature is not available in the desktop client yet.
+
+Version 10
+
+	sp_track_is_available() has been renamed to sp_track_get_availability()
+	This new function returns more detailed information about why a track
+	is not streamable.
+
+	Add error code SP_ERROR_NETWORK_DISABLED
+
+	Add error code SP_ERROR_INVALID_DEVICE_ID
+
+	Add sp_track_offline_get_status() to return offline status of a track.
+
+	Add sp_track_is_placeholder() that indicates if a track is a
+	placeholder track. Placeholder tracks are used to store items in
+	playlists that are not tracks but rather than changing the entire
+	API to support arbitrary items the sp_track object will act as a
+	proxy object. The placeholder track object only contains the URI
+	to the real object. IE. after having determined that a track
+	is a placeholder track the API user should use
+	sp_link_create_from_track() to get an URI to the real object
+	and continue to resolve the object from there.
+
+	Modify sp_artistbrowse_create() to take a type argument.
+	Prior to this release sp_artistbrowse_create() queried
+	Spotify's backend servers for all tracks related to an artist
+	and doing an artist browse. This consumes a lot of memory
+	on the host and for various embedded platforms this could
+	result in a crash. This new version of sp_artistbrowse_create()
+	offers a way to only query for the albums when using
+	'SP_ARTISTBROWSE_NO_TRACKS' (this would typically
+	result in 95% less memory used) or just data about the artist
+	itself 'SP_ARTISTBROWSE_NO_ALBUMS'. As most user interfaces
+	list albums when browsing an artist 'SP_ARTISTBROWSE_NO_TRACKS'
+	should almost always be used.
+
+	Add support for controlling volume normalization.
+	Note that volume normalization is not enabled on some targets.
+	In particular that includes all arm-targets and all target without
+	fast floating point (where libspotify uses fixed point vorbis
+	decoder instead)
+
+	A couple of functions ending with _backend_request_duration()
+	has been added. These functions can be used when analyzing
+	performance in an application to see how much time is spent
+	on waiting for a request to be served by the Spotify backend
+
+	A new session callback offline_error has been added that
+	is called if there is some general problems with offline
+	synchronization of tracks.
+	libspotifys social integration requires a HTTPS client.
+	This needs to be supplied by the application.
+	For an example of how to do this (using libcurl) see the
+	spshell example (spshell.c)
+
+Version 9
+
+	SPOTIFY_API_VERSION is bumped to 9.
+
+	Package version numbers have changed.
+
+	The distributed package (and the is so versioning where
+	applicable) is now versioned like this:
+
+	libspotify-X.Y.Z
+
+	X - Major version. Always same as SPOTIFY_API_VERSION.
+	    libraries with different major versions are not ABI compatible
+
+	Y - Minor version.
+	    Is 0 during development. 1 for the first public release, etc
+
+	Z - Patch version. Incremented for each change of the codebase
+
+	libspotify can now remember user credentials.
+	This should be used to automatically login the user.
+	The application MUST NEVER store the user's password.
+
+        - A fourth parameter has been added to sp_session_login() that
+	will tell libspotify to remember the login credentials in an
+	encrypted form stored in the settings_location as specified when
+	creating the session.
+
+	- To relogin a user, the application should invoke
+	sp_session_relogin() instead of sp_session_login().  If no
+	credentials are stored, SP_ERROR_NO_CREDENTIALS will be returned
+
+	- To clear stored credentials, use sp_session_forget_me()
+
+	- To get username of currently stored credentials use
+	sp_session_remembered_user()
+
+
+	Add sp_session_offline_time_left() that returns time left until
+	the user is required to reconnect to Spotify in order to
+	revalidate the offline keys.
+
+	The logged in state has been updated to include
+	SP_CONNECTION_STATE_OFFLINE, which indicates that the user is
+	logged in to the Spotify service in offline mode.
+
+	The SP_ERROR_RESOURCE_NOT_LOADED, which was only used by
+	sp_session_player_load(), has been replaced with SP_ERROR_IS_LOADING
+	which means the same thing.
+
+	The documentation has been updated to fix a few minor errors.
+
+	callback connection_error() will no longer be invoked if the error
+	parameter has value SP_ERROR_OK, as it isn't an error.
+
+	sp_track_set_starred and sp_playlist_add_tracks got their list
+	arguments const property changed from (const**) to (*const*).
+
+	sp_link_create_from_artist_portrait() renamed to
+	sp_link_create_from_artistbrowse_portrait() which is more appropriate.
+
+	Introduced sp_artist_portrait() and
+	sp_link_create_from_artist_portrait() to get one artist portrait
+	from an artist object. This should be used to get artist portraits
+	when doing search and top list browse queries.
+
+	Introduced sp_build_id() - This could be useful to display
+	somewhere deep down in the user interface in case you (or Spotify)
+	would like to know the exact version running.
+
+Version 0.0.8
+
+	SPOTIFY_API_VERSION is bumped to 8.
+
+	Added support for offline mode.
+	Users of libspotify can now request playlists to be offline
+	synchronized just as Spotify's desktop and mobile applications.
+	For example of how to do this, please see cmd_playlist_offline()
+	in playlist.c in the spshell example.
+
+	Added sp_playlistcontainer_is_loaded() which can be used to
+	check if a playlistcontainer is loaded. This value will be true
+	after the container_loaded() callback is invoked.
+
+	Added support for spotify:image: linktype. If your application
+	needs an abstract way to refer to coverarts, artist portraits, etc
+	this is what you should use.
+
+	Add sp_session_user_country() that returns the currently logged in
+	users registered country. This is the country that should be used
+	to get toplists localized for the user.
+
+	bugfix: LocalTrack URI handling (sp_link) was broken. This has now
+	been fixed
+
+	bufix: libspotify was unable to link on 10.4 and 10.5. This has
+	now been fixed
+
+Version 0.0.7
+
+	SPOTIFY_API_VERSION is bumped to 7.
+
+	IMPORTANT BEHAVIOR CHANGE: Prior to 0.0.7 libspotify would remove
+	all notification callbacks the user had registered on a playlist
+	if the playlist was removed from the root container.  This caused
+	a problem such that if a playlist was still visible in a user
+	interface and got removed from the root container no further
+	updates to the list would be visible. There is really no good
+	reason to have such behavior and therefore libspotify no longer
+	remove the registered notifications. So to be compatible with
+	libspotify 0.0.7 and maintain the previous behavior an
+	application MUST unregister the callbacks it has registered
+	when the sp_playlistcontainer_callbacks::playlist_removed
+	notification is invoked. All the examples shipped with
+	libspotify already do this so if you have followed them you
+	should be OK.
+
+	feature: libspotify is now available for ARMv5, ARMv6 and ARMv7 on
+	Linux/glibc
+
+	bugfix: In 0.0.6 sp_playlistcontainer_playlist_folder_name()
+	returned a pointer to free'd memory as the folder names are
+	internally generated on the fly. Now the caller will have to
+	provide a buffer to store the string instead.
+
+	bugfix: If sp_playlistcontainer_add_callbacks() was called before
+	login had succeed libspotify would crash. This was a regression
+	in 0.0.6
+
+	bugfix: sp_session_publishedcontainer_for_user() did not
+	initialize the playlist subsystem internally in the lib resulting
+	in a crash.  This could be circumvented by invoking another
+	playlist related API call before calling
+	sp_session_publishedcontainer_for_user().
+
+	bugfix: sp_session_publishedcontainer_for_user() has been removed
+	in favor of sp_session_publishedcontainer_for_user_create() which
+	creates a new object that the caller own and thus needs to release
+	using sp_playlistcontainer_release(). In 0.0.6 the
+	sp_session_publishedcontainer_for_user() function did not claim
+	a reference for the container internally and thus the container
+	would eventually be flushed by the playlist garbage collector
+	resulting in a crash.
+
+	All functions that return errors now have documentation that
+	describers the errors they can return.
+
+	SP_ERROR_NO_CACHE and SP_ERROR_NO_SUCH_USER error codes have
+	been added.
+
+	Inbox functionality now have support for messages attached to
+	each track.
+
+	Add support for creating playlist folders. See notes in
+	sp_playlistcontainer_add_folder() for how to delete and rename
+	folders.
+
+	Make it possible to modify seen status of tracks in playlist.
+	See sp_playlist_track_set_seen()
+
+	Add support for playlist subscription information.
+	See sp_playlist_update_subscribers()
+
+	The 'tiny_settings' session configuration flag has been removed
+	in favor of more granular flags. See documentation in
+	sp_session_config for more details.
+
+	Add support for moving playlists out of RAM and store bulk
+	of the information on disk. See sp_playlist_is_in_ram() documentation
+	for more details.
+
+	The spshell example did not initialize unused fields in
+	sp_session_config to zero. This is good practice to avoid
+	accidentally enabling features when compiling with a newer
+	version of the lib.
+
+	Playlist containers can now be properly reference counted.
+	See sp_playlistcontainer_add_ref() and
+	sp_playlistcontainer_release().
+
+
+
+
+
+Version 0.0.6
+
+	SPOTIFY_API_VERSION is bumped to 6.
+
+	feature: Playlist folders. The folders are implemented as
+	specialized playlists. Two specialized types of playlists can be
+	used to push/pop depth in the a playlist container view.  See
+	sp_playlist_type and sp_playlistcontainer_playlist_type().
+
+	feature: Auto linking of tracks, see sp_track_is_autolinked().
+
+	feature: Add support for extracting playlist description and
+	playlist images.
+
+	feature: Make it possible to query if a track is a local track.
+	See sp_track_is_local().
+
+	feature: sp_session_release() is now available and thus,
+	sp_session_init() has been renamed to sp_session_create()
+
+	feature: Improved audio delivery handling.
+
+	An application may choose to implement a callback in the session
+	struct that allows libspotify to query the application audio buffer
+	statistics.  The application should return number of samples
+	currently in its buffer and also if it has experienced any audio
+	dropouts (stutters) since the last query. The query
+	callback (get_audio_buffer_stats) will be invoked ca 10 times per
+	second.
+
+	If an application implements the get_audio_buffer_stats() it may
+	also choose to implement the start_playback() and stop_playback()
+	callbacks.  The start_playback() callback will be invoked when
+	there is enough samples in the buffer and the session player is in
+	play mode,see sp_session_player_play()
+
+	The stop_playback() callback will be invoked when playback is
+	paused and when a track ends.
+
+	If an application reports that it has experienced stutter it may
+	put itself in paused state and wait for start_playback() to be
+	invoked. This will happen once libspotify is satisfied with the
+	buffer fullness.  No stop_playback() will be invoked in this case.
+
+	feature: Prefetching of tracks has been added. See
+	sp_session_player_prefetch(). Note that prefetch only works if
+	the caching is enabled.
+
+	feature: A new session configuration variable 'tiny_settings' is
+	available that, when set, tries to minimize the data store in the
+	settings dir as much as possible without affecting the user
+	experience too much. Set this if free disk space is precious.
+
+
+Version 0.0.5
+
+	SPOTIFY_API_VERSION is bumped to 5.
+
+	feature: The cache size can now be explicitly configured.  See
+	sp_session_set_cache_size().
+
+	feature: Support for getting create user and time for playlist entries.
+	See sp_playlist_track_creator() sp_playlist_track_create_time() and the
+	track_created_changed callback.
+
+	feature: Support for loading currently logged in user's Inbox.  See
+	sp_session_inbox(), sp_playlist_track_seen() and the track_seen_changed
+	playlist callback.
+
+	feature: Three new link types SP_LINKTYPE_PROFILE,
+	SP_LINKTYPE_STARRED and SP_LINKTYPE_LOCALTRACK
+
+	feature: Support for browsing other users toplists. See
+	sp_toplistbrowse_create().
+
+	feature: Support for browsing published lists. See
+	sp_session_publishedcontainer_for_user() and
+	sp_session_publishedcontainer_for_user_release(), also you can
+	get the user object for a playlistcontainer using
+	sp_playlistcontainer_owner.
+
+	feature: Support creating local tracks. See sp_localtrack_create().
+
+	ABI change: sp_track_is_available() & sp_track_is_starred() now need
+	sp_session to be passed as an argument.
+
+Version 0.0.4
+
+	SPOTIFY_API_VERSION is bumped to 4.
+
+	feature: libspotify is now available for Win32 and OS/X platforms.
+
+	feature: Add support for starred tracks. See sp_track_is_starred(),
+	sp_track_set_starred() and sp_session_starred_create().
+
+	feature: Add support for radio. See sp_radio_search_create().
+
+	feature: Add support for loading playlist without adding them to
+	the users's playlist container. See sp_playlist_create().
+
+	feature: Add support for 320kb/s streaming. See
+	sp_session_preferred_bitrate().
+
+	feature: Added new session callback streaming_error() that is invoked
+	if the library is unable to play the requested track.
+
+	feature: Add new session callback userinfo_updated() that is invoked
+	when one or more sp_user entries have been updated.
+
+	ABI change: Due to internal changes, the sp_playlist_add_tracks()
+	needs sp_session to be passed as an argument.
+
+	API change: The include file has been renamed from spotify/api.h to
+	libspotify/api.h for coherency reasons.
+
+Version 0.0.3
+
+	SPOTIFY_API_VERSION is bumped to 3.
+
+	feature: libspotify is now available for 64-bit x86 Linux platforms
+
+	feature: sp_artistbrowse_num_albums() and sp_artistbrowse_album()
+	have been added so users of the API can list all albums returned
+	in an artist browse.
+
+	bugfix: SP_ERROR_OTHER_PERMAMENT renamed to SP_ERROR_OTHER_PERMANENT
+
+	feature: The sp_image API has changed. libspotify now exposes the
+	source image data via the API. See sp_image_data() and
+	sp_image_format()
+
+	feature: Playlistcontainer have a new callback container_loaded()
+	that is invoked after the container has been initially
+	synchronized from the server.
+
+	feature: Added support for toplists. See the sp_toplistbrowse API
+	functions.
+
+	feature: Add sp_link_as_track_and_offset() for getting play start
+	offset encoded in URIs.
+
+Version 0.0.2
+
+	SPOTIFY_API_VERSION is bumped to 2.
+
+	feature: sp_search_create() has been extended with offset and
+	limit for album and artist results.
+
+	bugfix: libspotify contained a bug that caused it to hang if a
+	playlist was removed when libspotify was running.
+
+	feature: sp_track_is_available() has been added to allow the user
+	to query if a track can be played or not due to regional
+	restrictions.
+
+	feature: sp_album_is_available() has been added to allow the user
+	to query if a album is available or not due to regional
+	restrictions.
+
+	feature: playlist_metadata_updated() per-playlist callback has
+	been added, allowing the user to refresh metadata for tracks in a
+	playlist.
+
+	feature: sp_album_type() has been added to allow the user to find
+	out the album type. See the sp_albumtype enum for the available
+	types.
+
+	feature: An end_of_track() session callback has been added. Prior
+	to this release the music_delivery() callback would be invoked
+	with num_frames set to 0 both to indicate audio discontinuity (as
+	a result of a seek from the main thread) and also to indicate
+	end-of-track.  To ease application development, end_of_track() is
+	now invoked at the end of a track and music_delivery() is only
+	invoked with num_frames set to 0 as a result of a seek.
+
+
+Version 0.0.1
+
+	Initial release

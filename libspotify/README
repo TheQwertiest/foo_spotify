@@ -1,0 +1,71 @@
+
+                                 libspotify 12.1.51
+                   ----------------------------------------
+
+                       Copyright © 2006-2012 Spotify Ltd
+
+
+
+1.  INTRODUCTION
+
+    This is the libspotify C API package.  With it, you can write applications
+    that utilize the Spotify music streaming service.
+
+
+2.  PACKAGE STRUCTURE
+
+    The package is structured as follows:
+
+      libspotify\
+        README.txt                     This README file
+        LICENSE.txt                    License governing the library,
+                                       and associated files
+        ChangeLog.txt                  Contains description of new and changed
+                                       functionality in libspotify
+        licenses.xhtml                 License governing third party libraries
+                                       included in libspotify.
+        include\libspotify\api.h       Header file for the library
+        lib\
+          libspotify.dll               libspotify DLL file
+          libspotify.lib               Import library
+        doc\
+          html\                        Documentation in HTML format
+                                       This information is also available online.
+          images\                      Graphics for use with applications
+                                       using libspotify. See section 6 below.
+        examples\                      Root directory for the example
+                                       source code
+
+3.  INSTALLATION
+
+    You have probably unpacked the distribution zip archive already.
+
+    To run the compiled examples you need to include the directory
+    where libspotify.dll resides in your system PATH environment
+    variable. For more details see this MSDN article about Windows DLL
+    search paths:
+
+    http://msdn.microsoft.com/en-us/library/7d83bc18.aspx
+    
+
+4.  APPLICATION KEYS
+
+    The example programs require a file called appkey.c which is not present in
+    the package.  You will need to request an application key at the
+    developer website at http://developer.spotify.com/ before being able to
+    run them.
+
+
+5.  LOGOTYPES AND TRADEMARK
+
+    The graphics found in the images/ subdirectory are available for use in
+    applications using libspotify. The terms and conditions for the use of these
+    are available on http://developer.spotify.com/.
+
+    A text file is included in images/, containing the text to be used in
+    non-graphical applications.
+
+
+6.  LICENSE
+
+    You should have received a separate LICENSE file together with this README.

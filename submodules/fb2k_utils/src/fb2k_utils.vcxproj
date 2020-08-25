@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>fb2k_utils</RootNamespace>
+    <WindowsTargetPlatformVersion>10</WindowsTargetPlatformVersion>
+    <ProjectGuid>{EE3BF4F9-2014-4CFF-96C8-44CFB85E0571}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(ProjectDir)..\props\env\BuildEnvCommon.props" />
+    <Import Project="$(ProjectDir)..\props\env\BuildEnvCpp.props" />
+    <Import Project="$(ProjectDir)..\props\env\StaticRuntime.props" />
+    <Import Project="$(ProjectDir)..\props\local\submodules.props" />
+    <Import Project="$(ProjectDir)..\props\submodules\fmt.props" />
+    <Import Project="$(ProjectDir)..\props\submodules\foobar2000_sdk.props" />
+    <Import Project="$(ProjectDir)..\props\submodules\range.props" />
+    <Import Project="$(ProjectDir)..\props\submodules\pfc.props" />
+    <Import Project="$(ProjectDir)..\props\submodules\span.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CAExcludePath>$(IncludePath);$(CAExcludePath)</CAExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zm200 /Zc:__cplusplus /Zc:preprocessor /experimental:newLambdaProcessor %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <DisableSpecificWarnings>5105</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Fast</FloatingPointModel>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+  <ItemGroup>
+    <ClCompile Include="qwr\abort_callback.cpp" />
+    <ClCompile Include="qwr\fbk2_paths.cpp" />
+    <ClCompile Include="qwr\delayed_executor.cpp" />
+    <ClCompile Include="qwr\error_popup.cpp" />
+    <ClCompile Include="qwr\file_helpers.cpp" />
+    <ClCompile Include="qwr\pfc_helpers_stream.cpp" />
+    <ClCompile Include="qwr\qwr_exception.cpp" />
+    <ClCompile Include="qwr\string_helpers.cpp" />
+    <ClCompile Include="qwr\text_helpers.cpp" />
+    <ClCompile Include="qwr\thread_helpers.cpp" />
+    <ClCompile Include="qwr\unicode.cpp" />
+    <ClCompile Include="qwr\winapi_error_helpers.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="qwr\abort_callback.h" />
+    <ClInclude Include="qwr\fbk2_paths.h" />
+    <ClInclude Include="qwr\delayed_executor.h" />
+    <ClInclude Include="qwr\error_popup.h" />
+    <ClInclude Include="qwr\file_helpers.h" />
+    <ClInclude Include="qwr\final_action.h" />
+    <ClInclude Include="qwr\pfc_helpers_cnt.h" />
+    <ClInclude Include="qwr\pfc_helpers_stream.h" />
+    <ClInclude Include="qwr\qwr_exception.h" />
+    <ClInclude Include="qwr\string_helpers.h" />
+    <ClInclude Include="qwr\text_helpers.h" />
+    <ClInclude Include="qwr\thread_helpers.h" />
+    <ClInclude Include="qwr\unicode.h" />
+    <ClInclude Include="qwr\winapi_error_helpers.h" />
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+</Project>

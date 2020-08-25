@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'Randomify' target in the 'Randomify' project
+//
+
+#ifdef __OBJC__
+    #import <Cocoa/Cocoa.h>
+#endif

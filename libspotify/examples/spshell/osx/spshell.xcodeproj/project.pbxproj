@@ -1,0 +1,276 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0575285911634BB7003FFC9D /* star.c in Sources */ = {isa = PBXBuildFile; fileRef = 0575285811634BB7003FFC9D /* star.c */; };
+		0575285D11634BC4003FFC9D /* social.c in Sources */ = {isa = PBXBuildFile; fileRef = 0575285C11634BC4003FFC9D /* social.c */; };
+		CF513AC8115B722500662A82 /* appkey.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513ABE115B722500662A82 /* appkey.c */; };
+		CF513AC9115B722500662A82 /* browse.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513ABF115B722500662A82 /* browse.c */; };
+		CF513ACA115B722500662A82 /* cmd.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC0115B722500662A82 /* cmd.c */; };
+		CF513ACB115B722500662A82 /* inbox.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC2115B722500662A82 /* inbox.c */; };
+		CF513ACC115B722500662A82 /* search.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC3115B722500662A82 /* search.c */; };
+		CF513ACD115B722500662A82 /* spshell_posix.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC4115B722500662A82 /* spshell_posix.c */; };
+		CF513ACE115B722500662A82 /* spshell.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC5115B722500662A82 /* spshell.c */; };
+		CF513ACF115B722500662A82 /* toplist.c in Sources */ = {isa = PBXBuildFile; fileRef = CF513AC7115B722500662A82 /* toplist.c */; };
+		CF513AD1115B722E00662A82 /* libspotify.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CF513AD0115B722E00662A82 /* libspotify.framework */; };
+		CF513AF2115B73B900662A82 /* libreadline.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = CF513AF1115B73B900662A82 /* libreadline.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8DD76FAF0486AB0100D96B5E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0575285811634BB7003FFC9D /* star.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = star.c; path = ../star.c; sourceTree = SOURCE_ROOT; };
+		0575285C11634BC4003FFC9D /* social.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = social.c; path = ../social.c; sourceTree = SOURCE_ROOT; };
+		8DD76FB20486AB0100D96B5E /* spshell */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = spshell; sourceTree = BUILT_PRODUCTS_DIR; };
+		CF513ABE115B722500662A82 /* appkey.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = appkey.c; path = ../../appkey.c; sourceTree = SOURCE_ROOT; };
+		CF513ABF115B722500662A82 /* browse.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = browse.c; path = ../browse.c; sourceTree = SOURCE_ROOT; };
+		CF513AC0115B722500662A82 /* cmd.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = cmd.c; path = ../cmd.c; sourceTree = SOURCE_ROOT; };
+		CF513AC1115B722500662A82 /* cmd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cmd.h; path = ../cmd.h; sourceTree = SOURCE_ROOT; };
+		CF513AC2115B722500662A82 /* inbox.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = inbox.c; path = ../inbox.c; sourceTree = SOURCE_ROOT; };
+		CF513AC3115B722500662A82 /* search.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = search.c; path = ../search.c; sourceTree = SOURCE_ROOT; };
+		CF513AC4115B722500662A82 /* spshell_posix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = spshell_posix.c; path = ../spshell_posix.c; sourceTree = SOURCE_ROOT; };
+		CF513AC5115B722500662A82 /* spshell.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = spshell.c; path = ../spshell.c; sourceTree = SOURCE_ROOT; };
+		CF513AC6115B722500662A82 /* spshell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = spshell.h; path = ../spshell.h; sourceTree = SOURCE_ROOT; };
+		CF513AC7115B722500662A82 /* toplist.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; name = toplist.c; path = ../toplist.c; sourceTree = SOURCE_ROOT; };
+		CF513AD0115B722E00662A82 /* libspotify.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = libspotify.framework; path = /Library/Frameworks/libspotify.framework; sourceTree = "<absolute>"; };
+		CF513AF1115B73B900662A82 /* libreadline.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libreadline.dylib; path = usr/lib/libreadline.dylib; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8DD76FAD0486AB0100D96B5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF513AD1115B722E00662A82 /* libspotify.framework in Frameworks */,
+				CF513AF2115B73B900662A82 /* libreadline.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* spshell */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7795FE84155DC02AAC07 /* Source */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = spshell;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				CF513ABE115B722500662A82 /* appkey.c */,
+				CF513ABF115B722500662A82 /* browse.c */,
+				CF513AC0115B722500662A82 /* cmd.c */,
+				CF513AC1115B722500662A82 /* cmd.h */,
+				CF513AC2115B722500662A82 /* inbox.c */,
+				CF513AC3115B722500662A82 /* search.c */,
+				CF513AC4115B722500662A82 /* spshell_posix.c */,
+				CF513AC5115B722500662A82 /* spshell.c */,
+				CF513AC6115B722500662A82 /* spshell.h */,
+				CF513AC7115B722500662A82 /* toplist.c */,
+				0575285811634BB7003FFC9D /* star.c */,
+				0575285C11634BC4003FFC9D /* social.c */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				CF513AF1115B73B900662A82 /* libreadline.dylib */,
+				CF513AD0115B722E00662A82 /* libspotify.framework */,
+				8DD76FB20486AB0100D96B5E /* spshell */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8DD76FA90486AB0100D96B5E /* spshell */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "spshell" */;
+			buildPhases = (
+				0575281D116348DB003FFC9D /* Ensure framework installation */,
+				8DD76FAB0486AB0100D96B5E /* Sources */,
+				8DD76FAD0486AB0100D96B5E /* Frameworks */,
+				8DD76FAF0486AB0100D96B5E /* CopyFiles */,
+				0575281F116348FB003FFC9D /* Change install name of libspotify */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = spshell;
+			productInstallPath = "$(HOME)/bin";
+			productName = spshell;
+			productReference = 8DD76FB20486AB0100D96B5E /* spshell */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "spshell" */;
+			compatibilityVersion = "Xcode 3.1";
+			hasScannedForEncodings = 1;
+			mainGroup = 08FB7794FE84155DC02AAC07 /* spshell */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8DD76FA90486AB0100D96B5E /* spshell */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		0575281D116348DB003FFC9D /* Ensure framework installation */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Ensure framework installation";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if [ ! -e /Library/Frameworks/libspotify.framework ]; then\n  echo \"You must install libspotify.framework to /Library/Frameworks.\" >&2\n  exit 1\nfi\n\nexit 0";
+		};
+		0575281F116348FB003FFC9D /* Change install name of libspotify */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Change install name of libspotify";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "install_name_tool -change @loader_path/../Frameworks/libspotify.framework/libspotify /Library/Frameworks/libspotify.framework/libspotify $CONFIGURATION_BUILD_DIR/$EXECUTABLE_PATH";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8DD76FAB0486AB0100D96B5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CF513AC8115B722500662A82 /* appkey.c in Sources */,
+				CF513AC9115B722500662A82 /* browse.c in Sources */,
+				CF513ACA115B722500662A82 /* cmd.c in Sources */,
+				CF513ACB115B722500662A82 /* inbox.c in Sources */,
+				CF513ACC115B722500662A82 /* search.c in Sources */,
+				CF513ACD115B722500662A82 /* spshell_posix.c in Sources */,
+				CF513ACE115B722500662A82 /* spshell.c in Sources */,
+				CF513ACF115B722500662A82 /* toplist.c in Sources */,
+				0575285911634BB7003FFC9D /* star.c in Sources */,
+				0575285D11634BC4003FFC9D /* social.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB928608733DD80010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = spshell;
+			};
+			name = Debug;
+		};
+		1DEB928708733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../..\"",
+				);
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = spshell;
+			};
+			name = Release;
+		};
+		1DEB928A08733DD80010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+			};
+			name = Debug;
+		};
+		1DEB928B08733DD80010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_64_BIT)";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.6;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB928508733DD80010E9CD /* Build configuration list for PBXNativeTarget "spshell" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928608733DD80010E9CD /* Debug */,
+				1DEB928708733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB928908733DD80010E9CD /* Build configuration list for PBXProject "spshell" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB928A08733DD80010E9CD /* Debug */,
+				1DEB928B08733DD80010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

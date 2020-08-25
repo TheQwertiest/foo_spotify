@@ -1,0 +1,126 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="fb2k\input.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\libspotify_backend.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="utils\cred_prompt.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\album_art.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\playback.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_auth.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="component_paths.cpp" />
+    <ClCompile Include="backend\webapi_backend.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\spotify_object.cpp" />
+    <ClCompile Include="fb2k\playlist_loader.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_image.cpp">
+      <Filter>backend\webapi_objects</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_track.cpp">
+      <Filter>backend\webapi_objects</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_album.cpp">
+      <Filter>backend\webapi_objects</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_artist.cpp">
+      <Filter>backend\webapi_objects</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\advanced_config.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="component_defines.h" />
+    <ClInclude Include="component_guids.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="utils\secure_vector.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\audio_buffer.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\libspotify_wrapper.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\libspotify_backend.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\cred_prompt.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\libspotify_backend_user.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\libspotify_key.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_auth.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\async_mutex.hpp">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="component_paths.h" />
+    <ClInclude Include="component_urls.h" />
+    <ClInclude Include="backend\webapi_backend.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\spotify_object.h">
+      <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_track.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_album.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_artist.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_image.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_objects_all.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\json_std_extenders.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\json_macro_fix.h">
+      <Filter>utils</Filter>
+    </ClInclude>
+    <ClInclude Include="fb2k\advanced_config.h">
+      <Filter>fb2k</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="utils">
+      <UniqueIdentifier>{39367257-b161-4f23-b132-bcf2bc7a7b1e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="backend">
+      <UniqueIdentifier>{b367b073-47b1-4060-9fb1-165c7d6558c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="fb2k">
+      <UniqueIdentifier>{a36e2bb9-5034-4b8e-9275-aac759906267}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="backend\webapi_objects">
+      <UniqueIdentifier>{9f4d57e0-bdd7-495d-a54d-0c753b8c738e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,181 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props" Condition="Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props')" />
+  <Import Project="..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.props" Condition="Exists('..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.props')" />
+  <Import Project="..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.props" Condition="Exists('..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.props')" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <RootNamespace>foo_spotify</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <ProjectGuid>{FB107A12-DEFC-4782-97FB-EC155B13550C}</ProjectGuid>
+    <VcpkgTriplet>x86-windows-static</VcpkgTriplet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(SolutionDir)\..\props\submodules\submodules.props" />
+    <Import Project="$(SolutionDir)\..\props\submodules\fb2k_utils.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)env\BuildEnvCommon.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)env\BuildEnvCpp.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)env\StaticRuntime.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\fmt.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\foobar2000_sdk.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\json.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\range.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\pfc.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\span.props" />
+    <Import Project="$(SolutionDir)\..\props\local_dependencies\libspotify.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup>
+    <CAExcludePath>$(IncludePath);$(CAExcludePath)</CAExcludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(ProjectDir);$(IncludePath);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zm200 /Zc:__cplusplus /Zc:preprocessor /experimental:newLambdaProcessor %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <DisableSpecificWarnings>5105</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <ConformanceMode>true</ConformanceMode>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <AdditionalOptions>-await %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>credui.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <SubSystem>Windows</SubSystem>
+      <AdditionalOptions>/SOURCELINK:$(IndependentGeneratedDir)source_link.json %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>_WINDOWS;_USRDLL;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <StringPooling>true</StringPooling>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <FloatingPointModel>Fast</FloatingPointModel>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+    </ResourceCompile>
+    <Link>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="backend\libspotify_backend.cpp" />
+    <ClCompile Include="backend\spotify_object.cpp" />
+    <ClCompile Include="backend\webapi_auth.cpp" />
+    <ClCompile Include="backend\webapi_backend.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_album.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_artist.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_image.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_track.cpp" />
+    <ClCompile Include="component_paths.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="fb2k\advanced_config.cpp" />
+    <ClCompile Include="fb2k\album_art.cpp" />
+    <ClCompile Include="fb2k\input.cpp" />
+    <ClCompile Include="fb2k\playback.cpp" />
+    <ClCompile Include="fb2k\playlist_loader.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="utils\cred_prompt.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="backend\audio_buffer.h" />
+    <ClInclude Include="backend\libspotify_key.h" />
+    <ClInclude Include="backend\libspotify_backend_user.h" />
+    <ClInclude Include="backend\libspotify_wrapper.h" />
+    <ClInclude Include="backend\libspotify_backend.h" />
+    <ClInclude Include="backend\spotify_object.h" />
+    <ClInclude Include="backend\webapi_auth.h" />
+    <ClInclude Include="backend\webapi_backend.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_image.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_album.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_artist.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_objects_all.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_track.h" />
+    <ClInclude Include="component_defines.h" />
+    <ClInclude Include="component_guids.h" />
+    <ClInclude Include="component_paths.h" />
+    <ClInclude Include="component_urls.h" />
+    <ClInclude Include="fb2k\advanced_config.h" />
+    <ClInclude Include="stdafx.h" />
+    <ClInclude Include="utils\async_mutex.hpp" />
+    <ClInclude Include="utils\cred_prompt.h" />
+    <ClInclude Include="utils\json_macro_fix.h" />
+    <ClInclude Include="utils\json_std_extenders.h" />
+    <ClInclude Include="utils\secure_vector.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\submodules\fb2k_utils\src\fb2k_utils.vcxproj">
+      <Project>{ee3bf4f9-2014-4cff-96c8-44cfb85e0571}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\submodules\foobar2000\foobar2000_component_client\foobar2000_component_client.vcxproj">
+      <Project>{71ad2674-065b-48f5-b8b0-e1f9d3892081}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\submodules\foobar2000\SDK\foobar2000_SDK.vcxproj">
+      <Project>{e8091321-d79d-4575-86ef-064ea1a4a20d}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\submodules\pfc\pfc.vcxproj">
+      <Project>{ebfffb4e-261d-44d3-b89c-957b31a0bf9c}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.targets" Condition="Exists('..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.targets')" />
+    <Import Project="..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets" Condition="Exists('..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets')" />
+    <Import Project="..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets" Condition="Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.props')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.props'))" />
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.Build.Tasks.Git.1.0.0\build\Microsoft.Build.Tasks.Git.targets'))" />
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.props')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.props'))" />
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.Common.1.0.0\build\Microsoft.SourceLink.Common.targets'))" />
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.props'))" />
+    <Error Condition="!Exists('..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\workspaces\packages\Microsoft.SourceLink.GitHub.1.0.0\build\Microsoft.SourceLink.GitHub.targets'))" />
+  </Target>
+</Project>
