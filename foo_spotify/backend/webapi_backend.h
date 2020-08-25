@@ -16,12 +16,12 @@ struct WebApi_Track;
 struct WebApi_Artist;
 class WebApiAuthorizer;
 
-class WebApiBackend
+class WebApi_Backend
 {
 public:
-    ~WebApiBackend();
+    ~WebApi_Backend();
 
-    static WebApiBackend& Instance();
+    static WebApi_Backend& Instance();
 
     void Initialize();
     void Finalize();
@@ -45,7 +45,7 @@ public:
     std::filesystem::path GetArtistImage( const std::string& artistId, const std::string& imgUrl );
 
 private:
-    WebApiBackend();
+    WebApi_Backend();
 
     nlohmann::json GetJsonResponse( const web::uri& requestUri );
 

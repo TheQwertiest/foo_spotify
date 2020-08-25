@@ -52,13 +52,13 @@ void alertIfFailure( pfc::string8 msg, sp_error err )
     alert( doctor( msg, err ) );
 }
 
-LibSpotifyBackend& LibSpotifyBackend::Instance()
+LibSpotify_Backend& LibSpotify_Backend::Instance()
 {
-    static LibSpotifyBackend ss;
+    static LibSpotify_Backend ss;
     return ss;
 }
 
-void LibSpotifyBackend::Initialize()
+void LibSpotify_Backend::Initialize()
 {
 
     if ( const auto settingsPath = path::LibSpotifySettings(); !fs::exists( settingsPath ) )
@@ -95,7 +95,7 @@ void LibSpotifyBackend::Initialize()
 #define SPTF_ASSIGN_CALLBACK( callbacks, name )                                                     \
     callbacks.name = []( sp_session * pSession, auto... args ) -> auto                              \
     { /** sp_session_userdata is assumed to be thread safe. */                                      \
-        return static_cast<LibSpotifyBackend*>( sp_session_userdata( pSession ) )->name( args... ); \
+        return static_cast<LibSpotify_Backend*>( sp_session_userdata( pSession ) )->name( args... ); \
     }
 
 // dummy callbacks are needed to avoid libspotify crashes on sp_session_release
@@ -137,7 +137,7 @@ void LibSpotifyBackend::Initialize()
     componentStatus_ = ComponentStatus::initialized;
 }
 
-void LibSpotifyBackend::Finalize()
+void LibSpotify_Backend::Finalize()
 {
     if ( componentStatus_ == ComponentStatus::not_initialized )
     {
@@ -164,12 +164,12 @@ void LibSpotifyBackend::Finalize()
     componentStatus_ = ComponentStatus::not_initialized;
 }
 
-ComponentStatus LibSpotifyBackend::GetComponentStatus() const
+ComponentStatus LibSpotify_Backend::GetComponentStatus() const
 { // TODO: add checks everywhere
     return componentStatus_;
 }
 
-void LibSpotifyBackend::RegisterBackendUser( LibSpotifyBackendUser& input )
+void LibSpotify_Backend::RegisterBackendUser( LibSpotify_BackendUser& input )
 {
     std::lock_guard lk( backendUsersMutex_ );
 
@@ -177,7 +177,7 @@ void LibSpotifyBackend::RegisterBackendUser( LibSpotifyBackendUser& input )
     backendUsers_.emplace( &input );
 }
 
-void LibSpotifyBackend::UnregisterBackendUser( LibSpotifyBackendUser& input )
+void LibSpotify_Backend::UnregisterBackendUser( LibSpotify_BackendUser& input )
 {
     std::lock_guard lk( backendUsersMutex_ );
 
@@ -185,7 +185,7 @@ void LibSpotifyBackend::UnregisterBackendUser( LibSpotifyBackendUser& input )
     backendUsers_.erase( &input );
 }
 
-sp_session* LibSpotifyBackend::GetInitializedSpSession( abort_callback& p_abort )
+sp_session* LibSpotify_Backend::GetInitializedSpSession( abort_callback& p_abort )
 {
     if ( componentStatus_ != ComponentStatus::initialized )
     {
@@ -209,7 +209,7 @@ sp_session* LibSpotifyBackend::GetInitializedSpSession( abort_callback& p_abort 
     return pSpSession_;
 }
 
-sp_session* LibSpotifyBackend::GetWhateverSpSession()
+sp_session* LibSpotify_Backend::GetWhateverSpSession()
 {
     if ( componentStatus_ != ComponentStatus::initialized )
     {
@@ -220,7 +220,7 @@ sp_session* LibSpotifyBackend::GetWhateverSpSession()
     return pSpSession_;
 }
 
-void LibSpotifyBackend::TryToLogin( abort_callback& p_abort )
+void LibSpotify_Backend::TryToLogin( abort_callback& p_abort )
 {
     // TODO: move login process to preferences page
     {
@@ -248,7 +248,7 @@ void LibSpotifyBackend::TryToLogin( abort_callback& p_abort )
     WaitForLogin( p_abort );
 }
 
-void LibSpotifyBackend::ShowLoginUI( sp_error last_login_result )
+void LibSpotify_Backend::ShowLoginUI( sp_error last_login_result )
 {
     fb2k::inMainThread2( [&] {
         {
@@ -277,7 +277,7 @@ void LibSpotifyBackend::ShowLoginUI( sp_error last_login_result )
     } );
 }
 
-void LibSpotifyBackend::WaitForLogin( abort_callback& p_abort )
+void LibSpotify_Backend::WaitForLogin( abort_callback& p_abort )
 {
     std::unique_lock lock( loginMutex_ );
 
@@ -289,7 +289,7 @@ void LibSpotifyBackend::WaitForLogin( abort_callback& p_abort )
     }
 }
 
-void LibSpotifyBackend::EventLoopThread()
+void LibSpotify_Backend::EventLoopThread()
 {
     int nextTimeout = INFINITE;
     while ( true )
@@ -318,14 +318,14 @@ void LibSpotifyBackend::EventLoopThread()
     }
 }
 
-void LibSpotifyBackend::StartEventLoopThread()
+void LibSpotify_Backend::StartEventLoopThread()
 {
     assert( !pWorker_ );
-    pWorker_ = std::make_unique<std::thread>( &LibSpotifyBackend::EventLoopThread, this );
+    pWorker_ = std::make_unique<std::thread>( &LibSpotify_Backend::EventLoopThread, this );
     qwr::SetThreadName( *pWorker_, "SPTF Event Loop" );
 }
 
-void LibSpotifyBackend::StopEventLoopThread()
+void LibSpotify_Backend::StopEventLoopThread()
 {
     if ( !pWorker_ )
     {
@@ -345,7 +345,7 @@ void LibSpotifyBackend::StopEventLoopThread()
     pWorker_.reset();
 }
 
-void LibSpotifyBackend::AcquireDecoder( void* owner )
+void LibSpotify_Backend::AcquireDecoder( void* owner )
 {
     std::lock_guard lk( decoderOwnerMutex_ );
     if ( pDecoderOwner_ && pDecoderOwner_ != owner )
@@ -356,7 +356,7 @@ void LibSpotifyBackend::AcquireDecoder( void* owner )
     pDecoderOwner_ = owner;
 }
 
-void LibSpotifyBackend::ReleaseDecoder( void* owner )
+void LibSpotify_Backend::ReleaseDecoder( void* owner )
 {
     (void)owner;
 
@@ -365,17 +365,17 @@ void LibSpotifyBackend::ReleaseDecoder( void* owner )
     pDecoderOwner_ = nullptr;
 }
 
-AudioBuffer& LibSpotifyBackend::GetAudioBuffer()
+AudioBuffer& LibSpotify_Backend::GetAudioBuffer()
 {
     return audioBuffer_;
 }
 
-void LibSpotifyBackend::log_message( const char* error )
+void LibSpotify_Backend::log_message( const char* error )
 {
     FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (log): " << error;
 }
 
-void LibSpotifyBackend::logged_in( sp_error error )
+void LibSpotify_Backend::logged_in( sp_error error )
 {
     if ( SP_ERROR_OK == error )
     {
@@ -406,12 +406,12 @@ void LibSpotifyBackend::logged_in( sp_error error )
     }
 }
 
-void LibSpotifyBackend::message_to_user( const char* message )
+void LibSpotify_Backend::message_to_user( const char* message )
 {
     alert( message );
 }
 
-void LibSpotifyBackend::notify_main_thread()
+void LibSpotify_Backend::notify_main_thread()
 {
     {
         std::unique_lock lock( workerMutex_ );
@@ -421,7 +421,7 @@ void LibSpotifyBackend::notify_main_thread()
     eventLoopCv_.notify_all();
 }
 
-int LibSpotifyBackend::music_delivery( const sp_audioformat* format, const void* frames, int num_frames )
+int LibSpotify_Backend::music_delivery( const sp_audioformat* format, const void* frames, int num_frames )
 {
     if ( !num_frames )
     {
@@ -440,17 +440,17 @@ int LibSpotifyBackend::music_delivery( const sp_audioformat* format, const void*
     return num_frames;
 }
 
-void LibSpotifyBackend::end_of_track()
+void LibSpotify_Backend::end_of_track()
 {
     audioBuffer_.has_ended();
 }
 
-void LibSpotifyBackend::play_token_lost()
+void LibSpotify_Backend::play_token_lost()
 {
     alert( "Playback has been paused because your Spotify account is being used somewhere else." );
 }
 
-void LibSpotifyBackend::connectionstate_updated()
+void LibSpotify_Backend::connectionstate_updated()
 {
     switch ( sp_session_connectionstate( pSpSession_ ) )
     {

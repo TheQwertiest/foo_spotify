@@ -82,7 +82,7 @@ public:
     */
 
 private:
-    WebApiBackend& waBackend_;
+    WebApi_Backend& waBackend_;
 };
 
 } // namespace
@@ -91,7 +91,7 @@ namespace
 {
 
 PlaylistLoaderSpotify::PlaylistLoaderSpotify()
-    : waBackend_( WebApiBackend::Instance() )
+    : waBackend_( WebApi_Backend::Instance() )
 {
 }
 

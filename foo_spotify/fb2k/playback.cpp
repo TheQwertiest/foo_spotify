@@ -9,7 +9,7 @@ namespace
 
 class PlayCallbacksSpotify
     : public play_callback_static
-    , public LibSpotifyBackendUser
+    , public LibSpotify_BackendUser
 {
 public:
     PlayCallbacksSpotify();
@@ -33,7 +33,7 @@ public:
     void on_volume_change( float p_new_val ) override{};
 
 private:
-    LibSpotifyBackend& spotifyBackend_;
+    LibSpotify_Backend& spotifyBackend_;
 
     std::mutex statusMutex_;
     std::atomic_bool isInitialized_{ true };
@@ -45,7 +45,7 @@ namespace
 {
 
 PlayCallbacksSpotify::PlayCallbacksSpotify()
-    : spotifyBackend_( LibSpotifyBackend::Instance() )
+    : spotifyBackend_( LibSpotify_Backend::Instance() )
 {
     spotifyBackend_.RegisterBackendUser( *this );
 }

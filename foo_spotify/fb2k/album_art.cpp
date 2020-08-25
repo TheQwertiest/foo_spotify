@@ -17,7 +17,7 @@ public:
     album_art_data_ptr query( const GUID& p_what, abort_callback& p_abort ) override;
 
 private:
-    WebApiBackend& waBackend_;
+    WebApi_Backend& waBackend_;
     std::unique_ptr<WebApi_Track> track_;
     std::unique_ptr<WebApi_Artist> artist_;
 };
@@ -31,7 +31,7 @@ public:
     album_art_extractor_instance_ptr open( file_ptr p_filehint, const char* p_path, abort_callback& p_abort ) override;
 
 private:
-    WebApiBackend& waBackend_;
+    WebApi_Backend& waBackend_;
 };
 
 } // namespace
@@ -40,7 +40,7 @@ namespace
 {
 
 AlbumArtExtractorInstanceSpotify::AlbumArtExtractorInstanceSpotify( std::unique_ptr<WebApi_Track> track, std::unique_ptr<WebApi_Artist> artist )
-    : waBackend_( WebApiBackend::Instance() )
+    : waBackend_( WebApi_Backend::Instance() )
     , track_( std::move( track ) )
     , artist_( std::move( artist ) )
 {
@@ -86,7 +86,7 @@ album_art_data_ptr AlbumArtExtractorInstanceSpotify::query( const GUID& p_what, 
 }
 
 AlbumArtExtractorSpotify::AlbumArtExtractorSpotify()
-    : waBackend_( WebApiBackend::Instance() )
+    : waBackend_( WebApi_Backend::Instance() )
 {
 }
 

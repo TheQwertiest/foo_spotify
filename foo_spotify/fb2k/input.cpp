@@ -22,7 +22,7 @@ namespace
 // input_impl::input_impl
 class InputSpotify
     : public input_stubs
-    , public LibSpotifyBackendUser
+    , public LibSpotify_BackendUser
 {
 public:
     InputSpotify();
@@ -86,8 +86,8 @@ public:
     static const char* g_get_name();
 
 private:
-    LibSpotifyBackend& lsBackend_;
-    WebApiBackend& waBackend_;
+    LibSpotify_Backend& lsBackend_;
+    WebApi_Backend& waBackend_;
 
     std::mutex statusMutex_;
     std::atomic_bool isInitialized_{ true };
@@ -109,8 +109,8 @@ namespace
 // TODO: reduce amount and duration of locks
 // TODO: delay backend loading until it's actually needed
 InputSpotify::InputSpotify()
-    : lsBackend_( LibSpotifyBackend::Instance() )
-    , waBackend_( WebApiBackend::Instance() )
+    : lsBackend_( LibSpotify_Backend::Instance() )
+    , waBackend_( WebApi_Backend::Instance() )
 {
     lsBackend_.RegisterBackendUser( *this );
 }

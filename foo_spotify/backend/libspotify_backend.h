@@ -17,22 +17,22 @@ enum class ComponentStatus
     initialized,
 };
 
-class LibSpotifyBackend
+class LibSpotify_Backend
 {
 public:
-    LibSpotifyBackend( const LibSpotifyBackend& ) = delete;
-    LibSpotifyBackend( LibSpotifyBackend&& ) = delete;
-    ~LibSpotifyBackend() = default;
+    LibSpotify_Backend( const LibSpotify_Backend& ) = delete;
+    LibSpotify_Backend( LibSpotify_Backend&& ) = delete;
+    ~LibSpotify_Backend() = default;
 
-    static LibSpotifyBackend& Instance();
+    static LibSpotify_Backend& Instance();
 
     void Initialize();
     void Finalize();
 
     ComponentStatus GetComponentStatus() const;
 
-    void RegisterBackendUser( LibSpotifyBackendUser& backendUser );
-    void UnregisterBackendUser( LibSpotifyBackendUser& backendUser );
+    void RegisterBackendUser( LibSpotify_BackendUser& backendUser );
+    void UnregisterBackendUser( LibSpotify_BackendUser& backendUser );
 
     void AcquireDecoder( void* owner );
     void ReleaseDecoder( void* owner );
@@ -50,7 +50,7 @@ public:
     }
 
 private:
-    LibSpotifyBackend() = default;
+    LibSpotify_Backend() = default;
 
     void TryToLogin( abort_callback& p_abort );
     void ShowLoginUI( sp_error last_login_result = SP_ERROR_OK );
@@ -89,7 +89,7 @@ private:
     bool shouldStopEventLoop_ = false;
 
     std::mutex backendUsersMutex_;
-    std::unordered_set<LibSpotifyBackendUser*> backendUsers_;
+    std::unordered_set<LibSpotify_BackendUser*> backendUsers_;
 
     enum class LoginStatus
     {

@@ -3,10 +3,10 @@
 namespace sptf
 {
 
-class LibSpotifyBackendUser
+class LibSpotify_BackendUser
 {
 public:
-    ~LibSpotifyBackendUser() = default;
+    ~LibSpotify_BackendUser() = default;
     virtual void Finalize() = 0;
 };
 

@@ -34,7 +34,7 @@ namespace fs = std::filesystem;
 namespace sptf
 {
 
-WebApiBackend::WebApiBackend()
+WebApi_Backend::WebApi_Backend()
     : client_( url::spotifyApi )
     , trackCache_("tracks")
     , artistCache_("artists")
@@ -43,22 +43,22 @@ WebApiBackend::WebApiBackend()
 {
 }
 
-WebApiBackend::~WebApiBackend()
+WebApi_Backend::~WebApi_Backend()
 {
 }
 
-WebApiBackend& WebApiBackend::Instance()
+WebApi_Backend& WebApi_Backend::Instance()
 {
-    static WebApiBackend wab;
+    static WebApi_Backend wab;
     return wab;
 }
 
-void WebApiBackend::Initialize()
+void WebApi_Backend::Initialize()
 {
     pAuth_ = std::make_unique<WebApiAuthorizer>();
 }
 
-void WebApiBackend::Finalize()
+void WebApi_Backend::Finalize()
 {
     cts_.cancel();
     cts_ = pplx::cancellation_token_source();
@@ -66,7 +66,7 @@ void WebApiBackend::Finalize()
 }
 
 std::unique_ptr<sptf::WebApi_Track>
-WebApiBackend::GetTrack( const std::string& trackId )
+WebApi_Backend::GetTrack( const std::string& trackId )
 {
     assert( pAuth_ );
 
@@ -90,7 +90,7 @@ WebApiBackend::GetTrack( const std::string& trackId )
 }
 
 std::vector<std::unique_ptr<sptf::WebApi_Track>>
-WebApiBackend::GetTracksFromPlaylist( const std::string& playlistId )
+WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId )
 {
     size_t offset = 0;
 
@@ -123,7 +123,7 @@ WebApiBackend::GetTracksFromPlaylist( const std::string& playlistId )
 }
 
 std::vector<std::unique_ptr<sptf::WebApi_Track>>
-WebApiBackend::GetTracksFromAlbum( const std::string& albumId )
+WebApi_Backend::GetTracksFromAlbum( const std::string& albumId )
 {
     assert( pAuth_ );
 
@@ -170,7 +170,7 @@ WebApiBackend::GetTracksFromAlbum( const std::string& albumId )
 }
 
 std::vector<std::unordered_multimap<std::string, std::string>>
-WebApiBackend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>> tracks )
+WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>> tracks )
 {
     std::vector<std::unordered_multimap<std::string, std::string>> ret;
     for ( const auto& track: tracks )
@@ -210,7 +210,7 @@ WebApiBackend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track
 }
 
 std::unique_ptr<sptf::WebApi_Artist>
-WebApiBackend::GetArtist( const std::string& artistId )
+WebApi_Backend::GetArtist( const std::string& artistId )
 {
     assert( pAuth_ );
 
@@ -232,17 +232,17 @@ WebApiBackend::GetArtist( const std::string& artistId )
     }
 }
 
-fs::path WebApiBackend::GetAlbumImage( const std::string& albumId, const std::string& imgUrl )
+fs::path WebApi_Backend::GetAlbumImage( const std::string& albumId, const std::string& imgUrl )
 {
     return albumImageCache_.GetImage( albumId, imgUrl );
 }
 
-fs::path WebApiBackend::GetArtistImage( const std::string& artistId, const std::string& imgUrl )
+fs::path WebApi_Backend::GetArtistImage( const std::string& artistId, const std::string& imgUrl )
 {
     return artistImageCache_.GetImage( artistId, imgUrl );
 }
 
-nlohmann::json WebApiBackend::GetJsonResponse( const web::uri& requestUri )
+nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri )
 {
     web::http::http_request req( web::http::methods::GET );
     req.headers().add( L"Authorization", L"Bearer " + pAuth_->GetAccessToken() );

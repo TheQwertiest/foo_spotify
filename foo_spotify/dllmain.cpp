@@ -23,8 +23,8 @@ public:
         qwr::DelayedExecutor::GetInstance().EnableExecution(); ///< Enable task processing (e.g. error popups)
         try
         {
-            sptf::WebApiBackend::Instance().Initialize();
-            sptf::LibSpotifyBackend::Instance().Initialize();
+            sptf::WebApi_Backend::Instance().Initialize();
+            sptf::LibSpotify_Backend::Instance().Initialize();
         }
         catch ( const std::exception& e )
         {
@@ -34,8 +34,8 @@ public:
 
     void on_quit() override
     { // Careful when changing invocation order here!
-        sptf::LibSpotifyBackend::Instance().Finalize();
-        sptf::WebApiBackend::Instance().Finalize();
+        sptf::LibSpotify_Backend::Instance().Finalize();
+        sptf::WebApi_Backend::Instance().Finalize();
     }
 };
 
