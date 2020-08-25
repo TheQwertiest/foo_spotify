@@ -100,7 +100,7 @@ void LibSpotifyBackend::Initialize()
 
 // dummy callbacks are needed to avoid libspotify crashes on sp_session_release
 #define SPTF_ASSIGN_DUMMY_CALLBACK( callbacks, name ) \
-    callbacks.name = []( auto... args ) {}
+    callbacks.name = []( auto... ) {}
 
     SPTF_ASSIGN_CALLBACK( callbacks_, logged_in );
     SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, logged_out );
