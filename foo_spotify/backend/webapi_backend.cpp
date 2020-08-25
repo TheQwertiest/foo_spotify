@@ -66,7 +66,7 @@ void WebApi_Backend::Finalize()
 }
 
 std::unique_ptr<sptf::WebApi_Track>
-WebApi_Backend::GetTrack( const std::string& trackId )
+WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
 {
     assert( pAuth_ );
 
@@ -81,7 +81,7 @@ WebApi_Backend::GetTrack( const std::string& trackId )
         builder.append_path( L"tracks" );
         builder.append_path( qwr::unicode::ToWide( trackId ) );
 
-        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         auto ret = responseJson.get<std::unique_ptr<WebApi_Track>>();
 
         trackCache_.CacheObject( ret );
@@ -90,7 +90,7 @@ WebApi_Backend::GetTrack( const std::string& trackId )
 }
 
 std::vector<std::unique_ptr<sptf::WebApi_Track>>
-WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId )
+WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort )
 {
     size_t offset = 0;
 
@@ -103,7 +103,7 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId )
         builder.append_query( L"offset", offset, false );
         offset += 100;
 
-        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
 
         const auto itemsIt = responseJson.find( "items" );
         qwr::QwrException::ExpectTrue( responseJson.cend() != itemsIt,
@@ -123,7 +123,7 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId )
 }
 
 std::vector<std::unique_ptr<sptf::WebApi_Track>>
-WebApi_Backend::GetTracksFromAlbum( const std::string& albumId )
+WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& abort )
 {
     assert( pAuth_ );
 
@@ -131,7 +131,7 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId )
         web::uri_builder builder;
         builder.append_path( fmt::format( L"albums/{}", qwr::unicode::ToWide( albumId ) ) );
 
-        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         return responseJson.get<std::shared_ptr<WebApi_Album_Simplified>>();
     }();
 
@@ -146,7 +146,7 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId )
         builder.append_query( L"offset", offset, false );
         offset += 50;
 
-        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
 
         const auto itemsIt = responseJson.find( "items" );
         qwr::QwrException::ExpectTrue( responseJson.cend() != itemsIt,
@@ -210,7 +210,7 @@ WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Trac
 }
 
 std::unique_ptr<sptf::WebApi_Artist>
-WebApi_Backend::GetArtist( const std::string& artistId )
+WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
 {
     assert( pAuth_ );
 
@@ -225,24 +225,24 @@ WebApi_Backend::GetArtist( const std::string& artistId )
         builder.append_path( L"artists" );
         builder.append_path( qwr::unicode::ToWide( artistId ) );
 
-        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         auto ret = responseJson.get<std::unique_ptr<WebApi_Artist>>();
         artistCache_.CacheObject( ret );
         return std::unique_ptr<sptf::WebApi_Artist>( std::move( ret ) );
     }
 }
 
-fs::path WebApi_Backend::GetAlbumImage( const std::string& albumId, const std::string& imgUrl )
+fs::path WebApi_Backend::GetAlbumImage( const std::string& albumId, const std::string& imgUrl, abort_callback& abort )
 {
-    return albumImageCache_.GetImage( albumId, imgUrl );
+    return albumImageCache_.GetImage( albumId, imgUrl, abort );
 }
 
-fs::path WebApi_Backend::GetArtistImage( const std::string& artistId, const std::string& imgUrl )
+fs::path WebApi_Backend::GetArtistImage( const std::string& artistId, const std::string& imgUrl, abort_callback& abort )
 {
-    return artistImageCache_.GetImage( artistId, imgUrl );
+    return artistImageCache_.GetImage( artistId, imgUrl, abort );
 }
 
-nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri )
+nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abort_callback& abort )
 {
     web::http::http_request req( web::http::methods::GET );
     req.headers().add( L"Authorization", L"Bearer " + pAuth_->GetAccessToken() );
@@ -250,7 +250,11 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri )
     req.headers().set_content_type( L"application/json" );
     req.set_request_uri( requestUri );
 
-    const auto response = client_.request( req, cts_.get_token() ).get();
+    auto ctsToken = cts_.get_token();
+    auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
+    // TODO: make abort_callback call local token
+
+    const auto response = client_.request( req, localCts.get_token() ).get();
     if ( response.status_code() != 200 )
     {
         throw qwr::QwrException( qwr::unicode::ToU8(

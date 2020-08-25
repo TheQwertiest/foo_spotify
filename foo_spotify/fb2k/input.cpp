@@ -157,7 +157,7 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
     auto pSession = lsBackend_.GetInitializedSpSession( p_abort );
 
     SpotifyObject so( p_path );
-    const auto track = waBackend_.GetTrack( so.id );
+    const auto track = waBackend_.GetTrack( so.id, p_abort );
     trackMeta_ = waBackend_.GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>>( &track, 1 ) )[0];
 
     lsBackend_.ExecSpMutex( [&] {

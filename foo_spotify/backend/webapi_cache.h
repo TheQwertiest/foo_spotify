@@ -96,7 +96,8 @@ public:
     }
 
     std::filesystem::path GetImage( const std::string& id,
-                                    const std::string& imgUrl );
+                                    const std::string& imgUrl,
+                                    abort_callback& abort );
 
 private:
     std::string cacheSubdir_;

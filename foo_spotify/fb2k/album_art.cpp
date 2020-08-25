@@ -58,7 +58,7 @@ album_art_data_ptr AlbumArtExtractorInstanceSpotify::query( const GUID& p_what, 
                 throw exception_album_art_not_found();
             }
 
-            return waBackend_.GetAlbumImage( track_->album->id, track_->album->images[0]->url );
+            return waBackend_.GetAlbumImage( track_->album->id, track_->album->images[0]->url, p_abort );
         }
         else if ( p_what == album_art_ids::artist )
         {
@@ -67,7 +67,7 @@ album_art_data_ptr AlbumArtExtractorInstanceSpotify::query( const GUID& p_what, 
                 throw exception_album_art_not_found();
             }
 
-            return waBackend_.GetArtistImage( artist_->id, artist_->images[0]->url );
+            return waBackend_.GetArtistImage( artist_->id, artist_->images[0]->url, p_abort );
         }
         else
         {
@@ -111,8 +111,8 @@ album_art_extractor_instance_ptr AlbumArtExtractorSpotify::open( file_ptr p_file
     SpotifyObject object( p_path );
     assert( object.type == "track" );
 
-    auto track = waBackend_.GetTrack( object.id );
-    auto artist = waBackend_.GetArtist( track->artists[0]->id );
+    auto track = waBackend_.GetTrack( object.id, p_abort );
+    auto artist = waBackend_.GetArtist( track->artists[0]->id, p_abort );
     if ( track->album->images.empty() && artist->images.empty() )
     {
         throw exception_album_art_not_found();

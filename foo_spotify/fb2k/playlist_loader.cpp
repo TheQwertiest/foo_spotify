@@ -118,11 +118,11 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
     const auto tracks = [&] {
         if ( spotifyObject.type == "album" )
         {
-            return waBackend_.GetTracksFromAlbum( spotifyObject.id );
+            return waBackend_.GetTracksFromAlbum( spotifyObject.id, p_abort );
         }
         else
         {
-            return waBackend_.GetTracksFromPlaylist( spotifyObject.id );
+            return waBackend_.GetTracksFromPlaylist( spotifyObject.id, p_abort );
         }
     }();
 
