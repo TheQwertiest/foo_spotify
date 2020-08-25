@@ -62,7 +62,8 @@ install:
   - .\bootstrap-vcpkg.bat
   - cd %APPVEYOR_BUILD_FOLDER%
   - vcpkg remove --outdated --recurse
-  - vcpkg install cpprestsdk:x86-windows-static-v142
+  - cmd: set VCPKG_PLATFORM_TOOLSET=v142
+  - vcpkg install cpprestsdk:x86-windows-static
   - vcpkg integrate install
   - py -u scripts\setup.py
 
