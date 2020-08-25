@@ -1,0 +1,36 @@
+plugins:
+  - jekyll-redirect-from
+  - jekyll-relative-links
+  - jekyll-remote-theme
+
+readme_index:
+  enabled: false
+
+remote_theme: pmarsceill/just-the-docs
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - build_scripts
+  - "*.bat"
+
+markdown: kramdown
+kramdown:
+  parse_block_html: true
+
+baseurl: "/foo_spotify/" 
+url: "https://theqwertiest.github.io"
+
+permalink: pretty
+
+title: Spotify Integration
+
+aux_links:
+  "View on GitHub":
+    - "//github.com/theqwertiest/foo_spotify"
+
+color_scheme: "dark"
+
+footer_content: "Copyright &copy; 2020 Yuri Shutenko.<br/>Distributed by an <a href=\"https://github.com/TheQwertiest/foo_spotify/blob/master/LICENSE\">MIT license.</a>"
+
+ga_tracking: UA-154231909-1
