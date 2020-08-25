@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <ImportGroup Label="PropertySheets">
+    </ImportGroup>
+    <PropertyGroup>
+        <_PropertySheetDisplayName>libspotify</_PropertySheetDisplayName>
+    </PropertyGroup>
+    <PropertyGroup Label="UserMacros">
+        <LibSpotifyDirectory>$(MainDir)libspotify\</LibSpotifyDirectory>
+        <LibSpotifyLibDirectory>$(LibSpotifyDirectory)lib\</LibSpotifyLibDirectory>
+        <LibSpotifyIncludeDirectory>$(LibSpotifyDirectory)include\</LibSpotifyIncludeDirectory>
+        <LibSpotifyDependencies>libspotify.lib</LibSpotifyDependencies>
+    </PropertyGroup>
+    <PropertyGroup>
+        <IncludePath>$(LibSpotifyIncludeDirectory);$(IncludePath)</IncludePath>
+    </PropertyGroup>
+    <ItemDefinitionGroup>
+        <Link>
+            <AdditionalLibraryDirectories>$(LibSpotifyLibDirectory);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>$(LibSpotifyDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
+    </ItemDefinitionGroup>
+    <ItemGroup />
+</Project>
