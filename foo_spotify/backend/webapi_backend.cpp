@@ -15,8 +15,7 @@
 
 #include <filesystem>
 
-// move to props
-#pragma comment( lib, "Urlmon.lib" )
+
 
 // TODO: (paged) search
 // TODO: preferences page with auth
@@ -29,6 +28,7 @@
 // TODO: smart_ptr<T> > smart_ptr<const T>
 // TODO: maybe cache parsed Tracks?
 
+
 namespace fs = std::filesystem;
 
 namespace sptf
@@ -36,6 +36,10 @@ namespace sptf
 
 WebApiBackend::WebApiBackend()
     : client_( url::spotifyApi )
+    , trackCache_("tracks")
+    , artistCache_("artists")
+    , albumImageCache_( "albums" )
+    , artistImageCache_( "artists" )
 {
 }
 
@@ -52,8 +56,6 @@ WebApiBackend& WebApiBackend::Instance()
 void WebApiBackend::Initialize()
 {
     pAuth_ = std::make_unique<WebApiAuthorizer>();
-    pfc::string8 proxy;
-    sptf::config::advanced::network_proxy.get( proxy );
 }
 
 void WebApiBackend::Finalize()
@@ -68,7 +70,7 @@ WebApiBackend::GetTrack( const std::string& trackId )
 {
     assert( pAuth_ );
 
-    if ( auto trackOpt = GetTrackFromCache( trackId );
+    if ( auto trackOpt = trackCache_.GetObjectFromCache( trackId );
          trackOpt )
     {
         return std::unique_ptr<sptf::WebApi_Track>( std::move( *trackOpt ) );
@@ -77,18 +79,13 @@ WebApiBackend::GetTrack( const std::string& trackId )
     {
         web::uri_builder builder;
         builder.append_path( L"tracks" );
-        builder.append_query( L"ids", qwr::unicode::ToWide( trackId ), false );
+        builder.append_path( qwr::unicode::ToWide( trackId ) );
 
         const auto responseJson = GetJsonResponse( builder.to_uri() );
+        auto ret = responseJson.get<std::unique_ptr<WebApi_Track>>();
 
-        const auto tracksIt = responseJson.find( "tracks" );
-        qwr::QwrException::ExpectTrue( responseJson.cend() != tracksIt,
-                                       L"Malformed track data response response: missing `tracks`" );
-
-        auto ret = tracksIt->get<std::vector<std::unique_ptr<WebApi_Track>>>();
-        assert( ret.size() == 1 );
-        CacheTracks( ret );
-        return std::unique_ptr<sptf::WebApi_Track>( std::move( ret[0] ) );
+        trackCache_.CacheObject( ret );
+        return std::unique_ptr<sptf::WebApi_Track>( std::move( ret ) );
     }
 }
 
@@ -121,7 +118,7 @@ WebApiBackend::GetTracksFromPlaylist( const std::string& playlistId )
         }
     }
 
-    CacheTracks( ret );
+    trackCache_.CacheObjects( ret );
     return ret;
 }
 
@@ -168,7 +165,7 @@ WebApiBackend::GetTracksFromAlbum( const std::string& albumId )
                       return std::make_unique<WebApi_Track>( std::move( elem ), album );
                   } )
                   | ranges::to_vector;
-    CacheTracks( newRet );
+    trackCache_.CacheObjects( newRet );
     return newRet;
 }
 
@@ -212,21 +209,37 @@ WebApiBackend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track
     return ret;
 }
 
+std::unique_ptr<sptf::WebApi_Artist>
+WebApiBackend::GetArtist( const std::string& artistId )
+{
+    assert( pAuth_ );
+
+    if ( auto objectOpt = artistCache_.GetObjectFromCache( artistId );
+         objectOpt )
+    {
+        return std::unique_ptr<sptf::WebApi_Artist>( std::move( *objectOpt ) );
+    }
+    else
+    {
+        web::uri_builder builder;
+        builder.append_path( L"artists" );
+        builder.append_path( qwr::unicode::ToWide( artistId ) );
+
+        const auto responseJson = GetJsonResponse( builder.to_uri() );
+        auto ret = responseJson.get<std::unique_ptr<WebApi_Artist>>();
+        artistCache_.CacheObject( ret );
+        return std::unique_ptr<sptf::WebApi_Artist>( std::move( ret ) );
+    }
+}
+
 fs::path WebApiBackend::GetAlbumImage( const std::string& albumId, const std::string& imgUrl )
 {
-    std::lock_guard lock( albumImageCacheMutex_ );
+    return albumImageCache_.GetImage( albumId, imgUrl );
+}
 
-    const auto imagePath = path::WebApiCache() / "images" / "albums" / fmt::format( "{}.jpeg", albumId );
-    if ( !fs::exists( imagePath ) )
-    {
-        fs::create_directories( imagePath.parent_path() );
-
-        const auto url_w = qwr::unicode::ToWide( imgUrl );
-        auto hr = URLDownloadToFile( nullptr, url_w.c_str(), imagePath.c_str(), 0, nullptr );
-        qwr::error::CheckHR( hr, "URLDownloadToFile" );
-    }
-    assert( fs::exists( imagePath ) );
-    return imagePath;
+fs::path WebApiBackend::GetArtistImage( const std::string& artistId, const std::string& imgUrl )
+{
+    return artistImageCache_.GetImage( artistId, imgUrl );
 }
 
 nlohmann::json WebApiBackend::GetJsonResponse( const web::uri& requestUri )
@@ -259,52 +272,9 @@ nlohmann::json WebApiBackend::GetJsonResponse( const web::uri& requestUri )
 
     const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
     qwr::QwrException::ExpectTrue( responseJson.is_object(),
-                                   L"Malformed track data response response: json is not an array" );
+                                   L"Malformed track data response response: json is not an object" );
 
     return responseJson;
-}
-
-void WebApiBackend::CacheTracks( const std::vector<std::unique_ptr<WebApi_Track>>& tracks, bool force )
-{
-    std::lock_guard lock( trackCacheMutex_ );
-
-    for ( const auto& pTrack: tracks )
-    {
-        const auto trackPath = path::WebApiCache() / "tracks" / fmt::format( "{}.json", pTrack->id );
-        if ( fs::exists( trackPath ) )
-        {
-            if ( !force )
-            {
-                continue;
-            }
-            fs::remove( trackPath );
-        }
-
-        fs::create_directories( trackPath.parent_path() );
-        qwr::file::WriteFile( trackPath, nlohmann::json( *pTrack ).dump( 2 ) );
-    }
-}
-
-std::optional<std::unique_ptr<sptf::WebApi_Track>>
-WebApiBackend::GetTrackFromCache( const std::string& trackId )
-{
-    std::lock_guard lock( trackCacheMutex_ );
-
-    const auto trackPath = path::WebApiCache() / "tracks" / fmt::format( "{}.json", trackId );
-    if ( !fs::exists( trackPath ) )
-    {
-        return std::nullopt;
-    }
-
-    const auto data = qwr::file::ReadFile( trackPath, CP_UTF8, false );
-    try
-    {
-        return nlohmann::json::parse( data ).get<std::unique_ptr<sptf::WebApi_Track>>();
-    }
-    catch ( const nlohmann::detail::exception& )
-    {
-        return std::nullopt;
-    }
 }
 
 } // namespace sptf

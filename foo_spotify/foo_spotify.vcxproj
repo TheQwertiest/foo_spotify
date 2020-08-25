@@ -104,6 +104,7 @@
     <ClCompile Include="backend\spotify_object.cpp" />
     <ClCompile Include="backend\webapi_auth.cpp" />
     <ClCompile Include="backend\webapi_backend.cpp" />
+    <ClCompile Include="backend\webapi_cache.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_album.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_artist.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_image.cpp" />
@@ -135,6 +136,7 @@
     <ClInclude Include="backend\webapi_objects\webapi_artist.h" />
     <ClInclude Include="backend\webapi_objects\webapi_objects_all.h" />
     <ClInclude Include="backend\webapi_objects\webapi_track.h" />
+    <ClInclude Include="backend\webapi_cache.h" />
     <ClInclude Include="component_defines.h" />
     <ClInclude Include="component_guids.h" />
     <ClInclude Include="component_paths.h" />

@@ -3,6 +3,8 @@
 #include <cpprest/http_client.h>
 #include <nonstd/span.hpp>
 
+#include <backend/webapi_cache.h>
+
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
@@ -11,6 +13,7 @@ namespace sptf
 {
 
 struct WebApi_Track;
+struct WebApi_Artist;
 class WebApiAuthorizer;
 
 class WebApiBackend
@@ -35,25 +38,28 @@ public:
     std::vector<std::unordered_multimap<std::string, std::string>>
     GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>> tracks );
 
+    std::unique_ptr<WebApi_Artist>
+    GetArtist( const std::string& artistId );
+
     std::filesystem::path GetAlbumImage( const std::string& albumId, const std::string& imgUrl );
+    std::filesystem::path GetArtistImage( const std::string& artistId, const std::string& imgUrl );
 
 private:
     WebApiBackend();
 
     nlohmann::json GetJsonResponse( const web::uri& requestUri );
 
-    void CacheTracks( const std::vector<std::unique_ptr<WebApi_Track>>& tracks, bool force = false );
-
-    std::optional<std::unique_ptr<WebApi_Track>>
-    GetTrackFromCache( const std::string& trackId );
-
 private:
     pplx::cancellation_token_source cts_;
     std::unique_ptr<WebApiAuthorizer> pAuth_;
     web::http::client::http_client client_;
 
-    std::mutex trackCacheMutex_;
-    std::mutex albumImageCacheMutex_;
+    WebApi_ObjectCache<WebApi_Track> trackCache_;
+    WebApi_ObjectCache<WebApi_Artist> artistCache_;
+
+    WebApi_ImageCache albumImageCache_;
+    WebApi_ImageCache artistImageCache_;
+    
 };
 
 } // namespace sptf
