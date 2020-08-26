@@ -122,6 +122,9 @@
     <ClInclude Include="fb2k\file_info_filler.h">
       <Filter>fb2k</Filter>
     </ClInclude>
+    <ClInclude Include="utils\abort_manager.h">
+      <Filter>utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="utils">

@@ -145,6 +145,7 @@
     <ClInclude Include="fb2k\advanced_config.h" />
     <ClInclude Include="fb2k\file_info_filler.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="utils\abort_manager.h" />
     <ClInclude Include="utils\async_mutex.hpp" />
     <ClInclude Include="utils\cred_prompt.h" />
     <ClInclude Include="utils\json_macro_fix.h" />
