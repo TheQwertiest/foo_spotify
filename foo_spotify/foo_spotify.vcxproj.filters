@@ -25,7 +25,6 @@
     <ClCompile Include="backend\webapi_backend.cpp">
       <Filter>backend</Filter>
     </ClCompile>
-    <ClCompile Include="backend\spotify_object.cpp" />
     <ClCompile Include="fb2k\playlist_loader.cpp">
       <Filter>fb2k</Filter>
     </ClCompile>
@@ -46,6 +45,12 @@
     </ClCompile>
     <ClCompile Include="backend\webapi_cache.cpp">
       <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\spotify_object.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\file_info_filler.cpp">
+      <Filter>fb2k</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -113,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="backend\webapi_cache.h">
       <Filter>backend</Filter>
+    </ClInclude>
+    <ClInclude Include="fb2k\file_info_filler.h">
+      <Filter>fb2k</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

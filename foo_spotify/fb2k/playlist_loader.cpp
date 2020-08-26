@@ -3,6 +3,7 @@
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_objects_all.h>
+#include <fb2k/file_info_filler.h>
 
 #include <qwr/string_helpers.h>
 
@@ -41,7 +42,7 @@ public:
     bool is_our_content_type( const char* p_content_type ) override;
     //! Returns whether playlist format extension supported by this implementation should be listed on file types associations page.
     bool is_associatable() override;
-    
+
     /*
     //! Attempts to load a playlist file from specified filesystem path. Throws exception_io or derivatives on failure, exception_aborted on abort. If specified file is not a recognized playlist file, exception_io_unsupported_format is thrown. \n
     //! Equivalent to g_load_playlist_filehint(NULL,p_path,p_callback).
@@ -108,11 +109,6 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         }
     }();
 
-    if ( spotifyObject.type == "track" )
-    {
-        throw exception_io_unsupported_format();
-    }
-
     p_callback->on_progress( p_path );
 
     const auto tracks = [&] {
@@ -120,40 +116,17 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         {
             return waBackend_.GetTracksFromAlbum( spotifyObject.id, p_abort );
         }
-        else
+        else if ( spotifyObject.type == "playlist" )
         {
             return waBackend_.GetTracksFromPlaylist( spotifyObject.id, p_abort );
         }
+        else
+        {
+            std::vector<std::unique_ptr<WebApi_Track>> tmp;
+            tmp.emplace_back( waBackend_.GetTrack( spotifyObject.id, p_abort ) );
+            return tmp;
+        }
     }();
-
-    auto addMeta = [&]( const auto& trackMeta, std::string_view metaName, file_info& p_info ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        if ( er.first != er.second )
-        {
-            const auto [key, val] = *er.first;
-            p_info.meta_add( metaName.data(), val.c_str() );
-        }
-    };
-    auto addMetaIfPositive = [&]( const auto& trackMeta, std::string_view metaName, file_info& p_info ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        if ( er.first != er.second )
-        {
-            const auto [key, val] = *er.first;
-            auto numOpt = qwr::string::GetNumber<uint32_t>( static_cast<std::string_view>( val ) );
-            if ( numOpt && *numOpt )
-            {
-                p_info.meta_add( metaName.data(), val.c_str() );
-            }
-        }
-    };
-    auto addMetaMultiple = [&]( const auto& trackMeta, std::string_view metaName, file_info& p_info ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        for ( auto it = er.first; it != er.second; ++it )
-        {
-            const auto [key, val] = *er.first;
-            p_info.meta_add( metaName.data(), val.c_str() );
-        }
-    };
 
     const auto tracksMeta = waBackend_.GetMetaForTracks( tracks );
     for ( const auto& [track, trackMeta]: ranges::views::zip( tracks, tracksMeta ) )
@@ -171,13 +144,7 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
             }
         }
 
-        addMeta( trackMeta, "TITLE", f_info );
-        addMeta( trackMeta, "ALBUM", f_info );
-        addMeta( trackMeta, "DATE", f_info );
-        addMetaMultiple( trackMeta, "ARTIST", f_info );
-        addMetaMultiple( trackMeta, "ALBUM ARTIST", f_info );
-        addMetaIfPositive( trackMeta, "TRACKNUMBER", f_info );
-        addMetaIfPositive( trackMeta, "DISCNUMBER", f_info );
+        FillFileInfoWithMeta( trackMeta, f_info );
 
         metadb_handle_ptr f_handle;
         p_callback->handle_create( f_handle, make_playable_location( fmt::format( "spotify:track:{}", track->id ).c_str(), 0 ) );

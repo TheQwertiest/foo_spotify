@@ -5,6 +5,7 @@
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_objects_all.h>
+#include <fb2k/file_info_filler.h>
 
 #include <qwr/string_helpers.h>
 
@@ -221,44 +222,7 @@ void InputSpotify::get_info( t_int32 subsong, file_info& p_info, abort_callback&
         p_info.set_length( sp_track_duration( track_ ) / 1000.0 );
     } );
 
-    const auto& trackMeta = trackMeta_;
-
-    auto addMeta = [&]( file_info& p_info, std::string_view metaName ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        if ( er.first != er.second )
-        {
-            const auto [key, val] = *er.first;
-            p_info.meta_add( metaName.data(), val.c_str() );
-        }
-    };
-    auto addMetaIfPositive = [&]( file_info& p_info, std::string_view metaName ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        if ( er.first != er.second )
-        {
-            const auto [key, val] = *er.first;
-            auto numOpt = qwr::string::GetNumber<uint32_t>( static_cast<std::string_view>( val ) );
-            if ( numOpt && *numOpt )
-            {
-                p_info.meta_add( metaName.data(), val.c_str() );
-            }
-        }
-    };
-    auto addMetaMultiple = [&]( file_info& p_info, std::string_view metaName ) {
-        const auto er = trackMeta.equal_range( std::string( metaName.begin(), metaName.end() ) );
-        for ( auto it = er.first; it != er.second; ++it )
-        {
-            const auto [key, val] = *er.first;
-            p_info.meta_add( metaName.data(), val.c_str() );
-        }
-    };
-
-    addMeta( p_info, "TITLE" );
-    addMeta( p_info, "ALBUM" );
-    addMeta( p_info, "DATE" );
-    addMetaMultiple( p_info, "ARTIST" );
-    addMetaMultiple( p_info, "ALBUM ARTIST" );
-    addMetaIfPositive( p_info, "TRACKNUMBER" );
-    addMetaIfPositive( p_info, "DISCNUMBER" );
+    FillFileInfoWithMeta( trackMeta_, p_info );
 }
 
 foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort )
@@ -269,7 +233,7 @@ foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort
 void InputSpotify::decode_initialize( t_int32 subsong, unsigned p_flags, abort_callback& p_abort )
 {
     std::lock_guard lk( statusMutex_ );
-    if ( !isInitialized_ || subsong)
+    if ( !isInitialized_ || subsong )
     {
         // TODO: azaza
         throw std::exception( "azaza" );

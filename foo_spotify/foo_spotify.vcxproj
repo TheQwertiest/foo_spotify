@@ -113,6 +113,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="fb2k\advanced_config.cpp" />
     <ClCompile Include="fb2k\album_art.cpp" />
+    <ClCompile Include="fb2k\file_info_filler.cpp" />
     <ClCompile Include="fb2k\input.cpp" />
     <ClCompile Include="fb2k\playback.cpp" />
     <ClCompile Include="fb2k\playlist_loader.cpp" />
@@ -142,6 +143,7 @@
     <ClInclude Include="component_paths.h" />
     <ClInclude Include="component_urls.h" />
     <ClInclude Include="fb2k\advanced_config.h" />
+    <ClInclude Include="fb2k\file_info_filler.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="utils\async_mutex.hpp" />
     <ClInclude Include="utils\cred_prompt.h" />
