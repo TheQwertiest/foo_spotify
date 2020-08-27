@@ -21,3 +21,6 @@
 	path = submodules/json
 	url = https://github.com/nlohmann/json.git
 	branch = master
+[submodule "submodules/wtl"]
+	path = submodules/wtl
+	url = https://git.code.sf.net/p/wtl/git

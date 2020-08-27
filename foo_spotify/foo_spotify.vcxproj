@@ -44,6 +44,7 @@
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\range.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\pfc.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\span.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\wtl.props" />
     <Import Project="$(SolutionDir)\..\props\local_dependencies\libspotify.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
@@ -115,12 +116,14 @@
     <ClCompile Include="fb2k\album_art.cpp" />
     <ClCompile Include="fb2k\file_info_filler.cpp" />
     <ClCompile Include="fb2k\input.cpp" />
+    <ClCompile Include="fb2k\mainmenu.cpp" />
     <ClCompile Include="fb2k\playback.cpp" />
     <ClCompile Include="fb2k\playlist_loader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="ui\ui_input_box.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -144,7 +147,10 @@
     <ClInclude Include="component_urls.h" />
     <ClInclude Include="fb2k\advanced_config.h" />
     <ClInclude Include="fb2k\file_info_filler.h" />
+    <ClInclude Include="fb2k\playlist_loader.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ui\ui_input_box.h" />
     <ClInclude Include="utils\abort_manager.h" />
     <ClInclude Include="utils\async_mutex.hpp" />
     <ClInclude Include="utils\cred_prompt.h" />
@@ -165,6 +171,9 @@
     <ProjectReference Include="..\submodules\pfc\pfc.vcxproj">
       <Project>{ebfffb4e-261d-44d3-b89c-957b31a0bf9c}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="foo_spotify.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

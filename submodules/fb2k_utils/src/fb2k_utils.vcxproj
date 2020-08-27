@@ -119,6 +119,7 @@
     <ClInclude Include="qwr\final_action.h" />
     <ClInclude Include="qwr\pfc_helpers_cnt.h" />
     <ClInclude Include="qwr\pfc_helpers_stream.h" />
+    <ClInclude Include="qwr\pfc_helpers_ui.h" />
     <ClInclude Include="qwr\qwr_exception.h" />
     <ClInclude Include="qwr\string_helpers.h" />
     <ClInclude Include="qwr\text_helpers.h" />

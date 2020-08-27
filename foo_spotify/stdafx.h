@@ -12,6 +12,21 @@
 #include <WinSock2.h>
 #include <Windows.h>
 
+// ATL/WTL
+/// atlstr.h (includes atlbase.h) must be included first for CString to LPTSTR conversion to work.
+#include <atlstr.h> 
+#include <atlapp.h>
+#include <atlcom.h>
+#include <atlcrack.h>
+#include <atlctrls.h>
+#include <atlddx.h>
+#include <atldlgs.h>
+#include <atlfind.h>
+#include <atlframe.h>
+#include <atltheme.h>
+#include <atltypes.h>
+#include <atlwin.h>
+
 // foobar2000 SDK
 #pragma warning( push, 0 )
 #   include <foobar2000/SDK/foobar2000.h>

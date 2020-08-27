@@ -1,11 +1,13 @@
 #pragma once
 
+#include <condition_variable>
 #include <functional>
 #include <mutex>
-#include <condition_variable>
 
 namespace sptf
 {
+
+#if 0
 
 class AbortManager
 {
@@ -102,5 +104,7 @@ private:
     std::vector<HANDLE> handles_;
     bool hasExploded_ = false;
 };
+
+#endif
 
 } // namespace sptf

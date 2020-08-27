@@ -222,7 +222,7 @@ void InputSpotify::get_info( t_int32 subsong, file_info& p_info, abort_callback&
         p_info.set_length( sp_track_duration( track_ ) / 1000.0 );
     } );
 
-    FillFileInfoWithMeta( trackMeta_, p_info );
+    //FillFileInfoWithMeta( trackMeta_, p_info );
 }
 
 foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort )

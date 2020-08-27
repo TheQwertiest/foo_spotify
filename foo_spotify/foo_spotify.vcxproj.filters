@@ -52,6 +52,12 @@
     <ClCompile Include="fb2k\file_info_filler.cpp">
       <Filter>fb2k</Filter>
     </ClCompile>
+    <ClCompile Include="fb2k\mainmenu.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ui_input_box.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />
@@ -125,6 +131,15 @@
     <ClInclude Include="utils\abort_manager.h">
       <Filter>utils</Filter>
     </ClInclude>
+    <ClInclude Include="fb2k\playlist_loader.h">
+      <Filter>fb2k</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\ui_input_box.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="utils">
@@ -139,5 +154,16 @@
     <Filter Include="backend\webapi_objects">
       <UniqueIdentifier>{9f4d57e0-bdd7-495d-a54d-0c753b8c738e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ui">
+      <UniqueIdentifier>{20a66e7a-1826-4915-8807-e86a5c3df4f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{4cc30a63-061e-4a1c-a2f1-8ecc63d6f357}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="foo_spotify.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>
