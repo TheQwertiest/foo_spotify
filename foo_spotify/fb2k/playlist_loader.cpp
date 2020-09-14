@@ -47,7 +47,7 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         }
         else
         {
-            std::vector<std::unique_ptr<WebApi_Track>> tmp;
+            std::vector<std::unique_ptr<const WebApi_Track>> tmp;
             tmp.emplace_back( waBackend_.GetTrack( spotifyObject.id, p_abort ) );
             return tmp;
         }

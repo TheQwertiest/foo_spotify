@@ -17,13 +17,10 @@
 
 // TODO: (paged) search
 // TODO: preferences page with auth
-// TODO: batch add by playlist
 // TODO: separate command for fixed playlist (auto-sync? manual?)
 // TODO: possible to sync playlist back to spotify?
-// TODO: handle drag-n-drop
 // TODO: handle `abort` callbacks
 // TODO: replace unique_ptr with shared_ptr wherever needed to avoid copying
-// TODO: smart_ptr<T> > smart_ptr<const T>
 // TODO: maybe cache parsed Tracks?
 
 namespace fs = std::filesystem;
@@ -62,7 +59,7 @@ void WebApi_Backend::Finalize()
     pAuth_.reset();
 }
 
-std::unique_ptr<sptf::WebApi_Track>
+std::unique_ptr<const sptf::WebApi_Track>
 WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
 {
     assert( pAuth_ );
@@ -81,17 +78,17 @@ WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         auto ret = responseJson.get<std::unique_ptr<WebApi_Track>>();
 
-        trackCache_.CacheObject( ret );
+        trackCache_.CacheObject( *ret );
         return std::unique_ptr<sptf::WebApi_Track>( std::move( ret ) );
     }
 }
 
-std::vector<std::unique_ptr<sptf::WebApi_Track>>
+std::vector<std::unique_ptr<const sptf::WebApi_Track>>
 WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort )
 {
     size_t offset = 0;
 
-    std::vector<std::unique_ptr<WebApi_Track>> ret;
+    std::vector<std::unique_ptr<const WebApi_Track>> ret;
     while ( true )
     {
         web::uri_builder builder;
@@ -120,7 +117,7 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
     return ret;
 }
 
-std::vector<std::unique_ptr<sptf::WebApi_Track>>
+std::vector<std::unique_ptr<const sptf::WebApi_Track>>
 WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& abort )
 {
     assert( pAuth_ );
@@ -160,7 +157,7 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& 
     }
 
     auto newRet = ranges::views::transform( ret, [&]( auto&& elem ) {
-                      return std::make_unique<WebApi_Track>( std::move( elem ), album );
+                      return std::make_unique<const WebApi_Track>( std::move( elem ), album );
                   } )
                   | ranges::to_vector;
     trackCache_.CacheObjects( newRet );
@@ -168,7 +165,7 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& 
 }
 
 std::vector<std::unordered_multimap<std::string, std::string>>
-WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>> tracks )
+WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>> tracks )
 {
     std::vector<std::unordered_multimap<std::string, std::string>> ret;
     for ( const auto& track: tracks )
@@ -198,16 +195,12 @@ WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Trac
     }
 
     // TODO: cache data (<https://fy.3dyd.com/help/titleformatting/#Metadata_length_limitations> might be useful)
-    // TODO: save spotify links
-    // TODO: save spotify uris
-    // TODO: album genre
-    // TODO: album popularity (maybe?)
-    // TODO: preview_url
+    // TODO: check webapi_objects for other fields
 
     return ret;
 }
 
-std::unique_ptr<sptf::WebApi_Artist>
+std::unique_ptr<const WebApi_Artist>
 WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
 {
     assert( pAuth_ );
@@ -215,7 +208,7 @@ WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
     if ( auto objectOpt = artistCache_.GetObjectFromCache( artistId );
          objectOpt )
     {
-        return std::unique_ptr<sptf::WebApi_Artist>( std::move( *objectOpt ) );
+        return std::unique_ptr<const WebApi_Artist>( std::move( *objectOpt ) );
     }
     else
     {
@@ -224,9 +217,9 @@ WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
         builder.append_path( qwr::unicode::ToWide( artistId ) );
 
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
-        auto ret = responseJson.get<std::unique_ptr<WebApi_Artist>>();
-        artistCache_.CacheObject( ret );
-        return std::unique_ptr<sptf::WebApi_Artist>( std::move( ret ) );
+        auto ret = responseJson.get<std::unique_ptr<const WebApi_Artist>>();
+        artistCache_.CacheObject( *ret );
+        return std::unique_ptr<const WebApi_Artist>( std::move( ret ) );
     }
 }
 
@@ -272,10 +265,7 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
                          }() ) ) );
     }
 
-    auto str = response.extract_string().get();
-    FB2K_console_formatter() << str;
-
-    const auto responseJson = nlohmann::json::parse( str );
+    const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
     qwr::QwrException::ExpectTrue( responseJson.is_object(),
                                    L"Malformed track data response response: json is not an object" );
 

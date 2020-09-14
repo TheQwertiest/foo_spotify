@@ -9,7 +9,7 @@ namespace sptf
 {
 
 WebApi_Track::WebApi_Track( std::unique_ptr<WebApi_Track_Simplified> trackSimplified,
-                            std::shared_ptr<WebApi_Album_Simplified> albumSimplified )
+                            std::shared_ptr<const WebApi_Album_Simplified> albumSimplified )
 {
     album = albumSimplified;
     artists = std::move( trackSimplified->artists );

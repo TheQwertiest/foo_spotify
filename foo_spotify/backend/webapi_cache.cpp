@@ -12,6 +12,11 @@ namespace fs = std::filesystem;
 namespace sptf
 {
 
+ WebApi_ImageCache::WebApi_ImageCache( const std::string& cacheSubdir )
+    : cacheSubdir_( cacheSubdir )
+{
+}
+
 fs::path WebApi_ImageCache::GetImage( const std::string& id, const std::string& imgUrl, abort_callback& abort )
 {
     std::lock_guard lock( cacheMutex_ );

@@ -19,7 +19,7 @@ public:
     {
     }
 
-    void CacheObject( const std::unique_ptr<T>& object, bool force = false )
+    void CacheObject( const T& object, bool force = false )
     {
         std::lock_guard lock( cacheMutex_ );
         CacheObjectNonBlocking( object, force );
@@ -30,7 +30,16 @@ public:
         std::lock_guard lock( cacheMutex_ );
         for ( const auto& pObject: objects )
         {
-            CacheObjectNonBlocking( pObject, force );
+            CacheObjectNonBlocking( *pObject, force );
+        }
+    }
+
+    void CacheObjects( const nonstd::span<std::unique_ptr<const T>> objects, bool force = false )
+    {
+        std::lock_guard lock( cacheMutex_ );
+        for ( const auto& pObject: objects )
+        {
+            CacheObjectNonBlocking( *pObject, force );
         }
     }
 
@@ -59,11 +68,11 @@ public:
     }
 
 private:
-    void CacheObjectNonBlocking( const std::unique_ptr<T>& object, bool force )
+    void CacheObjectNonBlocking( const T& object, bool force )
     {
         namespace fs = std::filesystem;
 
-        const auto filePath = GetCachedPath( object->id );
+        const auto filePath = GetCachedPath( object.id );
         if ( fs::exists( filePath ) )
         {
             if ( !force )
@@ -74,7 +83,7 @@ private:
         }
 
         fs::create_directories( filePath.parent_path() );
-        qwr::file::WriteFile( filePath, nlohmann::json( *object ).dump( 2 ) );
+        qwr::file::WriteFile( filePath, nlohmann::json( object ).dump( 2 ) );
     }
 
     std::filesystem::path GetCachedPath( const std::string& id ) const
@@ -90,10 +99,7 @@ private:
 class WebApi_ImageCache
 {
 public:
-    WebApi_ImageCache( const std::string& cacheSubdir )
-        : cacheSubdir_( cacheSubdir )
-    {
-    }
+    WebApi_ImageCache( const std::string& cacheSubdir );
 
     std::filesystem::path GetImage( const std::string& id,
                                     const std::string& imgUrl,

@@ -12,14 +12,14 @@ namespace
 class AlbumArtExtractorInstanceSpotify : public album_art_extractor_instance
 {
 public:
-    AlbumArtExtractorInstanceSpotify( std::unique_ptr<WebApi_Track> track, std::unique_ptr<WebApi_Artist> artist );
+    AlbumArtExtractorInstanceSpotify( std::unique_ptr<const WebApi_Track> track, std::unique_ptr<const WebApi_Artist> artist );
 
     album_art_data_ptr query( const GUID& p_what, abort_callback& p_abort ) override;
 
 private:
     WebApi_Backend& waBackend_;
-    std::unique_ptr<WebApi_Track> track_;
-    std::unique_ptr<WebApi_Artist> artist_;
+    std::unique_ptr<const WebApi_Track> track_;
+    std::unique_ptr<const WebApi_Artist> artist_;
 };
 
 class AlbumArtExtractorSpotify : public album_art_extractor
@@ -39,7 +39,7 @@ private:
 namespace
 {
 
-AlbumArtExtractorInstanceSpotify::AlbumArtExtractorInstanceSpotify( std::unique_ptr<WebApi_Track> track, std::unique_ptr<WebApi_Artist> artist )
+AlbumArtExtractorInstanceSpotify::AlbumArtExtractorInstanceSpotify( std::unique_ptr<const WebApi_Track> track, std::unique_ptr<const WebApi_Artist> artist )
     : waBackend_( WebApi_Backend::Instance() )
     , track_( std::move( track ) )
     , artist_( std::move( artist ) )

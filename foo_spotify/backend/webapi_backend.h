@@ -26,19 +26,19 @@ public:
     void Initialize();
     void Finalize();
 
-    std::unique_ptr<WebApi_Track>
+    std::unique_ptr<const WebApi_Track>
     GetTrack( const std::string& trackId, abort_callback& abort );
 
-    std::vector<std::unique_ptr<WebApi_Track>>
+    std::vector<std::unique_ptr<const WebApi_Track>>
     GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort );
 
-    std::vector<std::unique_ptr<WebApi_Track>>
+    std::vector<std::unique_ptr<const WebApi_Track>>
     GetTracksFromAlbum( const std::string& albumId, abort_callback& abort );
 
     std::vector<std::unordered_multimap<std::string, std::string>>
-    GetMetaForTracks( nonstd::span<const std::unique_ptr<WebApi_Track>> tracks );
+    GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>> tracks );
 
-    std::unique_ptr<WebApi_Artist>
+    std::unique_ptr<const WebApi_Artist>
     GetArtist( const std::string& artistId, abort_callback& abort );
 
     std::filesystem::path GetAlbumImage( const std::string& albumId, const std::string& imgUrl, abort_callback& abort );

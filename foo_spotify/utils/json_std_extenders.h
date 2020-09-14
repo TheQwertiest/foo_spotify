@@ -22,11 +22,9 @@ struct adl_serializer<std::unique_ptr<T>>
             throw nlohmann::json::type_error::create( 302, "type must not be null, but is" );
         }
 
-        p = std::make_unique<T>();
-        *p = std::move( j.get<T>() );
+        p = std::make_unique<T>( j.get<T>() );
     }
 };
-
 
 template <typename T>
 struct adl_serializer<std::shared_ptr<T>>
@@ -48,7 +46,7 @@ struct adl_serializer<std::shared_ptr<T>>
             throw nlohmann::json::type_error::create( 302, "type must not be null, but is" );
         }
 
-        p = std::make_shared<T>( std::move( j.get<T>() ) );
+        p = std::make_shared<T>( j.get<T>() );
     }
 };
 
