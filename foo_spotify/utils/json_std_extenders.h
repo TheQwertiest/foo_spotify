@@ -35,7 +35,7 @@ struct adl_serializer<std::shared_ptr<T>>
         {
             throw nlohmann::json::type_error::create( 302, "type must not be null, but is" );
         }
-        
+
         j = *value;
     }
 

@@ -9,7 +9,7 @@ _Post_satisfies_( checkValue ) void QwrException::ExpectTrue( bool checkValue, s
 {
     if ( !checkValue )
     {
-        throw QwrException( std::string( errorMessage.data(), errorMessage.size() ) );
+        throw QwrException( errorMessage );
     }
 }
 

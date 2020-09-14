@@ -103,7 +103,7 @@ bool PlaylistLoaderSpotify::is_associatable()
     return false;
 }
 
-} // namespace
+} // namespace sptf
 
 namespace
 {

@@ -74,7 +74,6 @@ album_art_data_ptr AlbumArtExtractorInstanceSpotify::query( const GUID& p_what, 
             throw exception_album_art_not_found();
         }
     }();
-    
 
     pfc::string8_fast canPath;
     filesystem::g_get_canonical_path( imagePath.u8string().c_str(), canPath );

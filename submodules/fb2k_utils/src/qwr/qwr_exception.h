@@ -10,8 +10,9 @@ class QwrException
     : public std::runtime_error
 {
 public:
-    explicit QwrException( const std::string& errorText )
-        : std::runtime_error( errorText )
+    template <typename... Args>
+    explicit QwrException( std::string_view errorMessage, Args&&... errorMessageFmtArgs )
+        : std::runtime_error( fmt::format( errorMessage, std::forward<Args>( errorMessageFmtArgs )... ) )
     {
     }
 
@@ -29,7 +30,7 @@ public:
     {
         if ( !checkValue )
         {
-            throw QwrException( fmt::format( errorMessage, std::forward<Args>( errorMessageFmtArgs )... ) );
+            throw QwrException( errorMessage, std::forward<Args>( errorMessageFmtArgs )... );
         }
     }
 

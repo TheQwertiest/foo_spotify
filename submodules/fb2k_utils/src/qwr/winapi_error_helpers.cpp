@@ -27,12 +27,12 @@ void ThrowParsedWinapiError( DWORD errorCode, std::string_view functionName )
             return MessageFromErrorCode( errorCode );
         }
     }();
-    throw QwrException( fmt::format( "WinAPI error:\n"
-                                     "  {} failed with error ({:#x}):\n"
-                                     "    {}",
-                                     functionName,
-                                     errorCode,
-                                     errorMessage ) );
+    throw QwrException( "WinAPI error:\n"
+                        "  {} failed with error ({:#x}):\n"
+                        "    {}",
+                        functionName,
+                        errorCode,
+                        errorMessage );
 }
 
 } // namespace

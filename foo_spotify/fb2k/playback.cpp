@@ -64,7 +64,7 @@ void PlayCallbacksSpotify::Finalize()
 
 unsigned PlayCallbacksSpotify::get_flags()
 {
-    return flag_on_playback_stop | flag_on_playback_pause;
+    return ( flag_on_playback_stop | flag_on_playback_pause );
 }
 
 void PlayCallbacksSpotify::on_playback_pause( bool isPaused )

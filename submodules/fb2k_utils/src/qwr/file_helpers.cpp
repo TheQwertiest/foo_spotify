@@ -138,10 +138,10 @@ std::filesystem::path GetAbsoluteNormalPath( const std::filesystem::path& path )
     }
     catch ( const fs::filesystem_error& e )
     {
-        throw QwrException( fmt::format( "Failed to open file `{}`:\n"
-                                         "  {}",
-                                         path.u8string(),
-                                         qwr::unicode::ToU8_FromAcpToWide( e.what() ) ) );
+        throw QwrException( "Failed to open file `{}`:\n"
+                            "  {}",
+                            path.u8string(),
+                            qwr::unicode::ToU8_FromAcpToWide( e.what() ) );
     }
 }
 
@@ -183,7 +183,7 @@ FileReader::FileReader( const fs::path& inPath, bool checkFileExistense )
     {
         if ( checkFileExistense && ( !fs::exists( fsPath ) || !fs::is_regular_file( fsPath ) ) )
         {
-            throw QwrException( fmt::format( "Path does not point to a valid file: {}", u8path ) );
+            throw QwrException( "Path does not point to a valid file: {}", u8path );
         }
 
         if ( !fs::file_size( fsPath ) )
@@ -220,10 +220,10 @@ FileReader::FileReader( const fs::path& inPath, bool checkFileExistense )
     }
     catch ( const fs::filesystem_error& e )
     {
-        throw QwrException( fmt::format( "Failed to open file `{}`:\n"
-                                         "  {}",
-                                         u8path,
-                                         qwr::unicode::ToU8_FromAcpToWide( e.what() ) ) );
+        throw QwrException( "Failed to open file `{}`:\n"
+                            "  {}",
+                            u8path,
+                            qwr::unicode::ToU8_FromAcpToWide( e.what() ) );
     }
 }
 

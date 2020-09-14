@@ -1,9 +1,9 @@
 #pragma once
 
+#include <backend/webapi_cache.h>
+
 #include <cpprest/http_client.h>
 #include <nonstd/span.hpp>
-
-#include <backend/webapi_cache.h>
 
 #include <filesystem>
 #include <unordered_map>
@@ -59,7 +59,6 @@ private:
 
     WebApi_ImageCache albumImageCache_;
     WebApi_ImageCache artistImageCache_;
-    
 };
 
 } // namespace sptf

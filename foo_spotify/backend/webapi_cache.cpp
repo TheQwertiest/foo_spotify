@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 namespace sptf
 {
 
- WebApi_ImageCache::WebApi_ImageCache( const std::string& cacheSubdir )
+WebApi_ImageCache::WebApi_ImageCache( const std::string& cacheSubdir )
     : cacheSubdir_( cacheSubdir )
 {
 }
