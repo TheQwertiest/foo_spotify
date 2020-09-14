@@ -52,11 +52,11 @@
     <ClCompile Include="fb2k\file_info_filler.cpp">
       <Filter>fb2k</Filter>
     </ClCompile>
-    <ClCompile Include="fb2k\mainmenu.cpp">
-      <Filter>fb2k</Filter>
-    </ClCompile>
     <ClCompile Include="ui\ui_input_box.cpp">
       <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp">
+      <Filter>backend\webapi_objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -139,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_playlist_track.h">
+      <Filter>backend\webapi_objects</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

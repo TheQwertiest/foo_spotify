@@ -15,8 +15,6 @@
 
 #include <filesystem>
 
-
-
 // TODO: (paged) search
 // TODO: preferences page with auth
 // TODO: batch add by playlist
@@ -28,7 +26,6 @@
 // TODO: smart_ptr<T> > smart_ptr<const T>
 // TODO: maybe cache parsed Tracks?
 
-
 namespace fs = std::filesystem;
 
 namespace sptf
@@ -36,8 +33,8 @@ namespace sptf
 
 WebApi_Backend::WebApi_Backend()
     : client_( url::spotifyApi )
-    , trackCache_("tracks")
-    , artistCache_("artists")
+    , trackCache_( "tracks" )
+    , artistCache_( "artists" )
     , albumImageCache_( "albums" )
     , artistImageCache_( "artists" )
 {
@@ -109,7 +106,8 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
         qwr::QwrException::ExpectTrue( responseJson.cend() != itemsIt,
                                        L"Malformed track data response response: missing `items`" );
 
-        auto newData = itemsIt->get<std::vector<std::unique_ptr<WebApi_Track>>>();
+        auto playlistTracks = itemsIt->get<std::vector<std::unique_ptr<WebApi_PlaylistTrack>>>();
+        auto newData = playlistTracks | ranges::views::transform( []( auto& elem ) { return std::move( elem->track ); } ) | ranges::to_vector;
         ret.insert( ret.end(), make_move_iterator( newData.begin() ), make_move_iterator( newData.end() ) );
 
         if ( responseJson.at( "next" ).is_null() )
@@ -274,7 +272,10 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
                          }() ) ) );
     }
 
-    const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
+    auto str = response.extract_string().get();
+    FB2K_console_formatter() << str;
+
+    const auto responseJson = nlohmann::json::parse( str );
     qwr::QwrException::ExpectTrue( responseJson.is_object(),
                                    L"Malformed track data response response: json is not an object" );
 
