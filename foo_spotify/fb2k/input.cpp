@@ -186,6 +186,7 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
 
     while ( true )
     {
+        // TODO: clean up here
         const auto done = lsBackend_.ExecSpMutex( [&] {
             const sp_error e = sp_track_error( track_ );
             if ( SP_ERROR_OK == e )
@@ -222,7 +223,7 @@ void InputSpotify::get_info( t_int32 subsong, file_info& p_info, abort_callback&
         p_info.set_length( sp_track_duration( track_ ) / 1000.0 );
     } );
 
-    //FillFileInfoWithMeta( trackMeta_, p_info );
+    FillFileInfoWithMeta( trackMeta_, p_info );
 }
 
 foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort )
@@ -286,7 +287,7 @@ bool InputSpotify::decode_run( audio_chunk& p_chunk, abort_callback& p_abort )
             return false;
         }
         else
-        { // TODO: replace with proper cond_var wait
+        { // TODO: replace with proper cond_var wait and abortable
             if ( !buf.has_data() )
             {
                 p_abort.sleep( 0.1 );

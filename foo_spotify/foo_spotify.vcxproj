@@ -124,6 +124,7 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="ui\ui_input_box.cpp" />
+    <ClCompile Include="utils\abort_manager.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
   </ItemGroup>
   <ItemGroup>

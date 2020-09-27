@@ -3,6 +3,8 @@
 #include <backend/libspotify_backend.h>
 #include <backend/webapi_backend.h>
 
+#include <utils/abort_manager.h>
+
 #include <qwr/delayed_executor.h>
 #include <qwr/error_popup.h>
 
@@ -34,6 +36,7 @@ public:
 
     void on_quit() override
     { // Careful when changing invocation order here!
+        sptf::AbortManager::Instance().Finalize();
         sptf::LibSpotify_Backend::Instance().Finalize();
         sptf::WebApi_Backend::Instance().Finalize();
     }

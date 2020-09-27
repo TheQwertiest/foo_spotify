@@ -7,12 +7,33 @@
 namespace sptf
 {
 
-#if 0
-
 class AbortManager
 {
 private:
     using Task = std::function<void()>;
+
+    struct AbortableTask
+    {
+        std::unique_ptr<Task> task;
+        abort_callback* pAbort;
+    };
+
+public:
+    class AbortableScope
+    {
+        friend class AbortManager;
+
+    public:
+        AbortableScope( AbortableScope&& other );
+        ~AbortableScope();
+
+    private:
+        explicit AbortableScope( size_t taskId );
+
+    private:
+        bool isValid_ = true;
+        size_t taskId_;
+    };
 
 public:
     static AbortManager& Instance();
@@ -20,91 +41,68 @@ public:
     void Finalize();
 
     template <typename T>
-    void AddTask( T&& task )
+    AbortableScope GetAbortableScope( T&& task, abort_callback& abort )
+    {
+        return AbortableScope( AddTask( std::forward<T>( task ), abort ) );
+    }
+
+private:
+    AbortManager();
+
+    void StartThread();
+    void StopThread();
+
+    void EventLoop();
+
+    template <typename T>
+    size_t AddTask( T&& task, abort_callback& abort )
     {
         static_assert( std::is_invocable_v<T> );
         static_assert( std::is_move_constructible_v<T> || std::is_copy_constructible_v<T> );
 
-        if (size == MAXIMUM_WAIT_OBJECTS)
-        {
-            throw TOOMUCH;
-        }
+        const auto taskId = [&] {
+            std::unique_lock lock( mutex_ );
+            auto id = idCounter_;
+            while ( idToTask_.count( id ) )
+            {
+                id = ++idCounter_;
+            }
+            return id;
+        }();
 
-        if ( canExecute_ )
         {
-            std::invoke( task );
-        }
-        else
-        {
+            std::unique_lock lock( mutex_ );
+
             if constexpr ( !std::is_copy_constructible_v<T> && std::is_move_constructible_v<T> )
             {
                 auto taskLambda = [taskWrapper = std::make_shared<T>( std::forward<T>( task ) )] {
                     std::invoke( *taskWrapper );
                 };
-                tasks_.emplace( std::make_unique<Task>( taskLambda ) );
+                idToTask_.try_emplace( taskId, AbortableTask{ std::make_unique<Task>( taskLambda ), &abort } );
             }
             else
             {
-                tasks_.emplace( std::make_unique<Task>( task ) );
+                idToTask_.try_emplace( taskId, AbortableTask{ std::make_unique<Task>( std::forward<T>( task ) ), &abort } );
             }
+            abortToIds_[&abort].emplace_back( taskId );
         }
+        eventCv_.notify_all();
+
+        return taskId;
     }
 
-private:
-    AbortManager(){
-
-    };
-
-    void EventLoop()
-    {
-        while ( true )
-        {
-            std::unique_lock lock( mutex_ );
-            eventCv_.wait_for( lock, std::chrono::seconds( 1 ), [&] { return ( isTimeToDie_ || !handles_.empty() ); } );
-
-            if (isTimeToDie_)
-            {
-                //TODO: invoke all
-                for (auto& callback : callbacks_)
-                {
-                    callback();
-                }
-                callbacks_.clear();
-                handles_.clear();
-                return;
-            }
-
-            auto ret = WaitForMultipleObjects( handles_.size(), handles_.data(), FALSE, 0 );
-            switch ( ret )
-            {
-            case WAIT_TIMEOUT:
-            {
-                continue;
-            }
-            case WAIT_FAILED:
-            {
-                 // TODO: add log
-                    hasExploded_ = true;
-                return;
-            }
-            default:
-                assert( !( ret >= WAIT_ABANDONED_0 && ret < WAIT_ABANDONED_0 + handles_.size() ) );
-                break;
-            }
-
-            callbacks_[ret]();
-            remove_callback_and_update_idx( ret );
-        }
-    }
+    void RemoveTask( uint32_t taskId );
 
 private:
+    std::unique_ptr<std::thread> pThread_;
+
     std::mutex mutex_;
     std::condition_variable eventCv_;
     bool isTimeToDie_ = false;
-    std::vector<HANDLE> handles_;
-    bool hasExploded_ = false;
-};
 
-#endif
+    size_t idCounter_ = 0;
+    std::unordered_map<size_t, AbortableTask> idToTask_;
+    std::unordered_map<abort_callback*, std::vector<size_t>> abortToIds_;
+};
 
 } // namespace sptf

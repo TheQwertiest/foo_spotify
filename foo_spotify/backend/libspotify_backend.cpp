@@ -127,6 +127,8 @@ void LibSpotify_Backend::Initialize()
 #undef SPTF_ASSIGN_DUMMY_CALLBACK
 #undef SPTF_ASSIGN_CALLBACK
 
+    // TODO: check if `sp_playlist_add_callbacks` works when implementing playlist handling
+
     {
         std::lock_guard lock( apiMutex_ );
         assertSucceeds( "creating session", sp_session_create( &config_, &pSpSession_ ) );
@@ -220,7 +222,7 @@ sp_session* LibSpotify_Backend::GetWhateverSpSession()
     return pSpSession_;
 }
 
-void LibSpotify_Backend::TryToLogin( abort_callback& p_abort )
+void LibSpotify_Backend::TryToLogin( abort_callback& abort )
 {
     // TODO: move login process to preferences page
     {
@@ -245,7 +247,7 @@ void LibSpotify_Backend::TryToLogin( abort_callback& p_abort )
         ShowLoginUI();
     }
 
-    WaitForLogin( p_abort );
+    WaitForLogin( abort );
 }
 
 void LibSpotify_Backend::ShowLoginUI( sp_error last_login_result )
@@ -277,7 +279,7 @@ void LibSpotify_Backend::ShowLoginUI( sp_error last_login_result )
     } );
 }
 
-void LibSpotify_Backend::WaitForLogin( abort_callback& p_abort )
+void LibSpotify_Backend::WaitForLogin( abort_callback& abort )
 {
     std::unique_lock lock( loginMutex_ );
 
@@ -285,7 +287,8 @@ void LibSpotify_Backend::WaitForLogin( abort_callback& p_abort )
             || loginStatus_ == LoginStatus::login_in_process )
     {
         loginCv_.wait_for( lock, std::chrono::milliseconds( 100 ) );
-        p_abort.check();
+        // TODO: replace abort with abort scope?
+        abort.check();
     }
 }
 

@@ -58,6 +58,9 @@
     <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp">
       <Filter>backend\webapi_objects</Filter>
     </ClCompile>
+    <ClCompile Include="utils\abort_manager.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />

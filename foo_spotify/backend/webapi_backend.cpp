@@ -6,12 +6,14 @@
 #include <backend/webapi_objects/webapi_objects_all.h>
 #include <fb2k/advanced_config.h>
 #include <utils/json_std_extenders.h>
+#include <utils/abort_manager.h>
 
 #include <component_urls.h>
 
 #include <qwr/file_helpers.h>
 #include <qwr/string_helpers.h>
 #include <qwr/winapi_error_helpers.h>
+#include <qwr/final_action.h>
 
 #include <filesystem>
 
@@ -243,7 +245,7 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
 
     auto ctsToken = cts_.get_token();
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
-    // TODO: make abort_callback call local token
+    const auto abortableScope = AbortManager::Instance().GetAbortableScope( [&localCts] { localCts.cancel(); }, abort );
 
     const auto response = client_.request( req, localCts.get_token() ).get();
     if ( response.status_code() != 200 )
