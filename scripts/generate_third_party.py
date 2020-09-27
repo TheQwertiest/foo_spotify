@@ -18,7 +18,7 @@ def generate():
     with open(root_dir/'.license_index.txt') as f:
         index = [l.strip().split(': ') for l in f.readlines() if l.strip()]
 
-    licenses = [f for f in (root_dir/'component'/'licenses').glob('*.txt')]
+    licenses = [f for f in (root_dir/'licenses').glob('*.txt')]
 
     if set([l[0] for l in index]) != set([l.stem for l in licenses]):
         raise RuntimeError('License file mismatch:\n'
@@ -32,7 +32,7 @@ def generate():
         output.write('The linked notices are provided for information only.\n')
         output.write('\n')
         for (dep_name, license) in index:
-            output.write(f'- [{dep_name} - {license}](component/licenses/{quote(dep_name)})\n')
+            output.write(f'- [{dep_name} - {license}](licenses/{quote(dep_name)})\n')
 
     print(f'Generated file: {output_file}')
 

@@ -4,6 +4,7 @@
 
 #include <backend/webapi_auth.h>
 #include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_user.h>
 #include <fb2k/advanced_config.h>
 #include <utils/json_std_extenders.h>
 #include <utils/abort_manager.h>
@@ -61,11 +62,23 @@ void WebApi_Backend::Finalize()
     pAuth_.reset();
 }
 
+WebApiAuthorizer& WebApi_Backend::GetAuthorizer()
+{
+    return *pAuth_;
+}
+
+std::unique_ptr<const WebApi_User> WebApi_Backend::GetUser( abort_callback& abort )
+{
+    web::uri_builder builder;
+    builder.append_path( L"me" );
+
+    const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+    return responseJson.get<std::unique_ptr<WebApi_User>>();
+}
+
 std::unique_ptr<const sptf::WebApi_Track>
 WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
 {
-    assert( pAuth_ );
-
     if ( auto trackOpt = trackCache_.GetObjectFromCache( trackId );
          trackOpt )
     {
@@ -122,8 +135,6 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
 std::vector<std::unique_ptr<const sptf::WebApi_Track>>
 WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& abort )
 {
-    assert( pAuth_ );
-
     auto album = [&] {
         web::uri_builder builder;
         builder.append_path( fmt::format( L"albums/{}", qwr::unicode::ToWide( albumId ) ) );
@@ -205,8 +216,6 @@ WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebAp
 std::unique_ptr<const WebApi_Artist>
 WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
 {
-    assert( pAuth_ );
-
     if ( auto objectOpt = artistCache_.GetObjectFromCache( artistId );
          objectOpt )
     {

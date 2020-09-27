@@ -12,6 +12,6 @@ struct CredentialsResult
     bool cancelled = false;
 };
 
-std::unique_ptr<CredentialsResult> ShowCredentialsDialog( const char* msg );
+std::unique_ptr<CredentialsResult> ShowCredentialsDialog( HWND hWnd, const char* msg );
 
 } // namespace sptf

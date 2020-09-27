@@ -20,11 +20,13 @@
 
 #include <experimental/resumable>
 
-// move to props
+// TODO: move to props
 #pragma comment( lib, "bcrypt.lib" )
 #pragma comment( lib, "Crypt32.lib" )
 #pragma comment( lib, "winhttp.lib" )
 #pragma comment( lib, "httpapi.lib" )
+
+// TODO: add abortable to cts
 
 namespace fs = std::filesystem;
 
@@ -32,10 +34,6 @@ namespace
 {
 
 constexpr wchar_t k_clientId[] = L"56b24aee069c4de2937c5e359de82b93";
-
-constexpr wchar_t k_proxy[] = L"http://127.0.0.1:3128";
-
-web::http::client::http_client_config config;
 
 } // namespace
 
@@ -263,7 +261,7 @@ void WebApiAuthorizer::AuthenticateWithRefreshToken()
     req.headers().set_content_type( L"application/x-www-form-urlencoded" );
     req.set_request_uri( builder.to_uri() );
 
-    web::http::client::http_client client( url::accountsApi, config );
+    web::http::client::http_client client( url::accountsApi );
     auto response = client.request( req, cts_.get_token() );
     HandleAuthenticationResponse( response.get() );
 }
@@ -302,7 +300,7 @@ pplx::task<void> WebApiAuthorizer::CompleteAuthentication( const std::wstring& r
     req.headers().set_content_type( L"application/x-www-form-urlencoded" );
     req.set_body( builder.query() );
 
-    web::http::client::http_client client( url::accountsApi, config );
+    web::http::client::http_client client( url::accountsApi );
     const auto response = co_await client.request( req, cts_.get_token() );
     HandleAuthenticationResponse( response );
 }

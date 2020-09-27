@@ -92,9 +92,9 @@ void LibSpotify_Backend::Initialize()
     config_.tracefile = ...;
     */
 
-#define SPTF_ASSIGN_CALLBACK( callbacks, name )                                                     \
-    callbacks.name = []( sp_session * pSession, auto... args ) -> auto                              \
-    { /** sp_session_userdata is assumed to be thread safe. */                                      \
+#define SPTF_ASSIGN_CALLBACK( callbacks, name )                                                      \
+    callbacks.name = []( sp_session * pSession, auto... args ) -> auto                               \
+    { /** sp_session_userdata is assumed to be thread safe. */                                       \
         return static_cast<LibSpotify_Backend*>( sp_session_userdata( pSession ) )->name( args... ); \
     }
 
@@ -160,6 +160,15 @@ void LibSpotify_Backend::Finalize()
     {
         std::lock_guard lock( apiMutex_ );
         sp_session_player_unload( pSpSession_ );
+
+        {
+            std::lock_guard lock( loginMutex_ );
+            if ( loginStatus_ == LoginStatus::logged_out )
+            {
+                sp_session_logout( pSpSession_ );
+            }
+        }
+
         sp_session_release( pSpSession_ );
     }
 
@@ -195,17 +204,10 @@ sp_session* LibSpotify_Backend::GetInitializedSpSession( abort_callback& p_abort
         throw std::exception( "not initialzied" );
     }
 
-    TryToLogin( p_abort );
-
+    if ( !Relogin( p_abort ) )
     {
-        std::lock_guard lock( loginMutex_ );
-
-        assert( loginStatus_ == LoginStatus::logged_in || loginStatus_ == LoginStatus::logged_out );
-        if ( loginStatus_ != LoginStatus::logged_in )
-        {
-            // TODO: proper error
-            throw std::exception( "not logged in" );
-        }
+        // TODO: proper error
+        throw std::exception( "not logged in" );
     }
 
     return pSpSession_;
@@ -222,74 +224,120 @@ sp_session* LibSpotify_Backend::GetWhateverSpSession()
     return pSpSession_;
 }
 
-void LibSpotify_Backend::TryToLogin( abort_callback& abort )
+bool LibSpotify_Backend::Relogin( abort_callback& abort )
 {
-    // TODO: move login process to preferences page
     {
         std::lock_guard lock( loginMutex_ );
 
-        if ( loginStatus_ == LoginStatus::logged_in
-             || loginStatus_ == LoginStatus::login_in_process
-             || loginStatus_ == LoginStatus::login_in_process_with_dialog )
+        if ( loginStatus_ == LoginStatus::login_required )
         {
-            return;
+            return false;
         }
 
-        loginStatus_ = LoginStatus::login_in_process;
+        if ( loginStatus_ == LoginStatus::logged_out )
+        {
+            loginStatus_ = LoginStatus::login_in_process;
+
+            const auto spRet = [&] {
+                std::lock_guard lock( apiMutex_ );
+                return sp_session_relogin( pSpSession_ );
+            }();
+            if ( spRet == SP_ERROR_NO_CREDENTIALS )
+            {
+                loginStatus_ = LoginStatus::login_required;
+                return false;
+            }
+        }
     }
 
-    const auto spRet = [&] {
-        std::lock_guard lock( apiMutex_ );
-        return sp_session_relogin( pSpSession_ );
-    }();
-    if ( spRet == SP_ERROR_NO_CREDENTIALS )
-    {
-        ShowLoginUI();
-    }
-
-    WaitForLogin( abort );
+    return WaitForLoginStatusUpdate( abort );
 }
 
-void LibSpotify_Backend::ShowLoginUI( sp_error last_login_result )
+bool LibSpotify_Backend::LoginWithUI( HWND hWnd, abort_callback& abort )
 {
-    fb2k::inMainThread2( [&] {
-        {
-            std::lock_guard lock( loginMutex_ );
-            assert( loginStatus_ == LoginStatus::login_in_process );
-            loginStatus_ = LoginStatus::login_in_process_with_dialog;
-        }
-        auto cpr = ShowCredentialsDialog( nullptr );
+    assert( core_api::assert_main_thread() );
+
+    {
+        std::lock_guard lock( loginMutex_ );
+        assert( loginStatus_ == LoginStatus::login_required );
+        loginStatus_ = LoginStatus::login_in_process;
+        isLoginBad_ = false;
+    }
+
+    do
+    {
+        auto cpr = ShowCredentialsDialog( hWnd, isLoginBad_ ? sp_error_message( SP_ERROR_BAD_USERNAME_OR_PASSWORD ) : nullptr );
         if ( cpr->cancelled )
         {
             {
                 std::lock_guard lock( loginMutex_ );
-                loginStatus_ = LoginStatus::logged_out;
+                loginStatus_ = LoginStatus::login_required;
             }
             loginCv_.notify_all();
+            return false;
         }
-        else
+
         {
-            {
-                std::lock_guard lock( loginMutex_ );
-                loginStatus_ = LoginStatus::login_in_process;
-            }
             std::lock_guard lock( apiMutex_ );
             sp_session_login( pSpSession_, cpr->un.data(), cpr->pw.data(), true, nullptr );
         }
-    } );
+    } while ( !WaitForLoginStatusUpdate( abort ) );
+
+    return true;
 }
 
-void LibSpotify_Backend::WaitForLogin( abort_callback& abort )
+void LibSpotify_Backend::LogoutAndForget( abort_callback& abort )
+{
+    {
+        std::lock_guard lgLogin( loginMutex_ );
+        if ( loginStatus_ != LoginStatus::logged_in )
+        {
+            return;
+        }
+
+        loginStatus_ = LoginStatus::logout_in_process;
+    }
+    
+    std::lock_guard lgApi( apiMutex_ );
+    sp_session_logout( pSpSession_ );
+    sp_session_forget_me( pSpSession_ );
+    
+
+    WaitForLoginStatusUpdate( abort );
+}
+
+bool LibSpotify_Backend::WaitForLoginStatusUpdate( abort_callback& abort )
 {
     std::unique_lock lock( loginMutex_ );
 
-    while ( loginStatus_ == LoginStatus::login_in_process_with_dialog
-            || loginStatus_ == LoginStatus::login_in_process )
+    while ( loginStatus_ == LoginStatus::login_in_process )
     {
         loginCv_.wait_for( lock, std::chrono::milliseconds( 100 ) );
         // TODO: replace abort with abort scope?
         abort.check();
     }
+    return ( loginStatus_ == LoginStatus::logged_in );
+}
+
+std::string LibSpotify_Backend::GetLoggedInUserName()
+{
+    {
+        std::lock_guard lock( loginMutex_ );
+        if ( loginStatus_ != LoginStatus::logged_in )
+        {
+            return "<error: user is not logged in>";
+        }
+    }
+
+    std::lock_guard lock( apiMutex_ );
+    // TODO: add sp_user_display_name
+    const char* userName = sp_session_user_name( pSpSession_ );
+    if ( !userName )
+    {
+        return "<error: user name could not be fetched>";
+    }
+
+    return userName;
 }
 
 void LibSpotify_Backend::EventLoopThread()
@@ -385,21 +433,17 @@ void LibSpotify_Backend::logged_in( sp_error error )
         return;
     }
 
-    if (SP_ERROR_BAD_USERNAME_OR_PASSWORD == error)
+    if ( SP_ERROR_BAD_USERNAME_OR_PASSWORD == error )
     {
         std::lock_guard lock( loginMutex_ );
         if ( loginStatus_ == LoginStatus::login_in_process )
         {
-            ShowLoginUI( error );
+            isLoginBad_ = true;
+            loginStatus_ = LoginStatus::login_required;
         }
     }
     else
     {
-        {
-            std::lock_guard lock( loginMutex_ );
-            // this is needed to suppress LogIn dialog
-            loginStatus_ = LoginStatus::login_in_process_with_dialog;
-        }
         fb2k::inMainThread2( [&, error] {
             std::lock_guard lock( loginMutex_ );
 

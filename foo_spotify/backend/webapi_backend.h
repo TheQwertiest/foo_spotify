@@ -12,6 +12,7 @@
 namespace sptf
 {
 
+    struct WebApi_User;
 struct WebApi_Track;
 struct WebApi_Artist;
 class WebApiAuthorizer;
@@ -25,6 +26,11 @@ public:
 
     void Initialize();
     void Finalize();
+
+    WebApiAuthorizer& GetAuthorizer();
+
+    std::unique_ptr<const WebApi_User>
+    GetUser( abort_callback& abort );
 
     std::unique_ptr<const WebApi_Track>
     GetTrack( const std::string& trackId, abort_callback& abort );

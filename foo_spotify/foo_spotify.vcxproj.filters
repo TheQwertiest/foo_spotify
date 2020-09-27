@@ -52,14 +52,17 @@
     <ClCompile Include="fb2k\file_info_filler.cpp">
       <Filter>fb2k</Filter>
     </ClCompile>
-    <ClCompile Include="ui\ui_input_box.cpp">
-      <Filter>ui</Filter>
-    </ClCompile>
     <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp">
       <Filter>backend\webapi_objects</Filter>
     </ClCompile>
     <ClCompile Include="utils\abort_manager.cpp">
       <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="ui\ui_preferences.cpp">
+      <Filter>ui</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\webapi_objects\webapi_user.cpp">
+      <Filter>backend\webapi_objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -137,13 +140,16 @@
     <ClInclude Include="fb2k\playlist_loader.h">
       <Filter>fb2k</Filter>
     </ClInclude>
-    <ClInclude Include="ui\ui_input_box.h">
-      <Filter>ui</Filter>
-    </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>resources</Filter>
     </ClInclude>
     <ClInclude Include="backend\webapi_objects\webapi_playlist_track.h">
+      <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\ui_preferences.h">
+      <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_objects\webapi_user.h">
       <Filter>backend\webapi_objects</Filter>
     </ClInclude>
   </ItemGroup>
@@ -171,5 +177,10 @@
     <ResourceCompile Include="foo_spotify.rc">
       <Filter>resources</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="foo_spotify.rc2">
+      <Filter>resources</Filter>
+    </None>
   </ItemGroup>
 </Project>

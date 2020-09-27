@@ -124,6 +124,7 @@
     <ClInclude Include="qwr\string_helpers.h" />
     <ClInclude Include="qwr\text_helpers.h" />
     <ClInclude Include="qwr\thread_helpers.h" />
+    <ClInclude Include="qwr\ui_ddx.h" />
     <ClInclude Include="qwr\unicode.h" />
     <ClInclude Include="qwr\winapi_error_helpers.h" />
     <ClInclude Include="stdafx.h" />

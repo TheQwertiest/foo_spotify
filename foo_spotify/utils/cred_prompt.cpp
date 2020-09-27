@@ -8,7 +8,7 @@
 namespace sptf
 {
 
-std::unique_ptr<CredentialsResult> ShowCredentialsDialog( const char* msg )
+std::unique_ptr<CredentialsResult> ShowCredentialsDialog( HWND hWnd, const char* msg )
 {
     const auto wMsg = [msg]
     {
@@ -32,7 +32,7 @@ std::unique_ptr<CredentialsResult> ShowCredentialsDialog( const char* msg )
 
     CREDUI_INFOW cui{};
     cui.cbSize = sizeof( CREDUI_INFO );
-    cui.hwndParent = core_api::get_main_window();
+    cui.hwndParent = hWnd;
     //  Ensure that MessageText and CaptionText identify what credentials
     //  to use and which application requires them.
     cui.pszMessageText = wMsg.c_str();

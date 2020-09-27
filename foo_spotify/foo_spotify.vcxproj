@@ -111,6 +111,7 @@
     <ClCompile Include="backend\webapi_objects\webapi_image.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_track.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_user.cpp" />
     <ClCompile Include="component_paths.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="fb2k\advanced_config.cpp" />
@@ -123,7 +124,7 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
-    <ClCompile Include="ui\ui_input_box.cpp" />
+    <ClCompile Include="ui\ui_preferences.cpp" />
     <ClCompile Include="utils\abort_manager.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
   </ItemGroup>
@@ -143,6 +144,7 @@
     <ClInclude Include="backend\webapi_objects\webapi_playlist_track.h" />
     <ClInclude Include="backend\webapi_objects\webapi_track.h" />
     <ClInclude Include="backend\webapi_cache.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_user.h" />
     <ClInclude Include="component_defines.h" />
     <ClInclude Include="component_guids.h" />
     <ClInclude Include="component_paths.h" />
@@ -152,7 +154,7 @@
     <ClInclude Include="fb2k\playlist_loader.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ui\ui_input_box.h" />
+    <ClInclude Include="ui\ui_preferences.h" />
     <ClInclude Include="utils\abort_manager.h" />
     <ClInclude Include="utils\async_mutex.hpp" />
     <ClInclude Include="utils\cred_prompt.h" />
@@ -176,6 +178,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="foo_spotify.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="foo_spotify.rc2" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

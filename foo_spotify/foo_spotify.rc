@@ -24,7 +24,6 @@
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 #pragma code_page(1252)
 
-
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -60,15 +59,18 @@ END
 // Dialog
 //
 
-IDD_DIALOG_INPUT DIALOGEX 0, 0, 239, 76
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "InputBox"
-FONT 8, "Tahoma", 400, 0, 0x0
+IDD_PREFERENCES DIALOGEX 0, 0, 334, 288
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CLIPSIBLINGS
+EXSTYLE WS_EX_CONTROLPARENT
+FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
-    LTEXT           "Prompt",IDC_INPUT_PROMPT,7,7,170,56
-    EDITTEXT        IDC_INPUT_VALUE,7,55,225,14,ES_AUTOHSCROLL
-    DEFPUSHBUTTON   "OK",IDOK,182,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,182,26,50,14
+    GROUPBOX        "Authentication",IDC_STATIC,15,18,295,113
+    PUSHBUTTON      "Button1",IDC_BTN_LOGIN_LIBSPOTIFY,27,49,50,14
+    PUSHBUTTON      "Button2",IDC_BTN_LOGIN_WEBAPI,27,96,50,14
+    LTEXT           "Status:",IDC_STATIC_LIBSPOTIFY_STATUS,82,41,135,24
+    LTEXT           "Status:",IDC_STATIC_WEBAPI_STATUS,81,94,139,20
+    GROUPBOX        "LibSpotify",IDC_STATIC,23,33,208,39
+    GROUPBOX        "WebAPI",IDC_STATIC,21,81,210,40
 END
 
 
@@ -80,12 +82,34 @@ END
 #ifdef APSTUDIO_INVOKED
 GUIDELINES DESIGNINFO
 BEGIN
-    IDD_DIALOG_INPUT, DIALOG
+    IDD_PREFERENCES, DIALOG
     BEGIN
     END
 END
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_PREFERENCES AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#include "foo_spotify.rc2"
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
 

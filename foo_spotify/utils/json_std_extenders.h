@@ -50,4 +50,32 @@ struct adl_serializer<std::shared_ptr<T>>
     }
 };
 
+template <typename T>
+struct adl_serializer<std::optional<T>>
+{
+    static void to_json( nlohmann::json& j, const std::optional<T>& value )
+    {
+        if ( !value )
+        {
+            j = nlohmann::json();
+        }
+        else
+        {
+            j = *value;
+        }
+    }
+
+    static void from_json( const nlohmann::json& j, std::optional<T>& p )
+    {
+        if ( j.is_null() )
+        {
+            p = std::nullopt;
+        }
+        else
+        {
+            p = j.get<T>();
+        }
+    }
+};
+
 } // namespace nlohmann

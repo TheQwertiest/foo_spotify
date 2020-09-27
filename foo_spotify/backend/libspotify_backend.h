@@ -39,7 +39,7 @@ public:
 
     AudioBuffer& GetAudioBuffer();
 
-    sp_session* GetInitializedSpSession( abort_callback& p_abort );
+    sp_session* GetInitializedSpSession( abort_callback& abort );
     sp_session* GetWhateverSpSession();
 
     template <typename Fn, typename... Args>
@@ -49,16 +49,20 @@ public:
         return func( std::forward<Args>( args )... );
     }
 
+    bool Relogin( abort_callback& abort );
+    bool LoginWithUI( HWND hWnd, abort_callback& abort );
+    void LogoutAndForget( abort_callback& abort );
+
+    std::string GetLoggedInUserName();
+
 private:
     LibSpotify_Backend() = default;
-
-    void TryToLogin( abort_callback& p_abort );
-    void ShowLoginUI( sp_error last_login_result = SP_ERROR_OK );
-    void WaitForLogin( abort_callback& p_abort );
-
+    
     void EventLoopThread();
     void StartEventLoopThread();
     void StopEventLoopThread();
+    
+    bool WaitForLoginStatusUpdate( abort_callback& abort );
 
     // callbacks
 
@@ -96,12 +100,14 @@ private:
         logged_out,
         logged_in,
         login_in_process,
-        login_in_process_with_dialog,
+        logout_in_process,
+        login_required,
     };
 
     std::mutex loginMutex_;
     std::condition_variable loginCv_;
     LoginStatus loginStatus_ = LoginStatus::logged_out;
+    bool isLoginBad_;
 
     AudioBuffer audioBuffer_;
 };
