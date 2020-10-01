@@ -42,6 +42,8 @@ Spotify interface limitation: these features are part of the Spotify Connect int
 
 
 ## Links
+
+[Support thread](https://hydrogenaud.io/index.php?topic=119972.new.html)  
 [Changelog][changelog]  
 [Current tasks and plans][todo]  
 [Nightly build](https://ci.appveyor.com/api/projects/theqwertiest/foo-spotify/artifacts/_result%2FWin32_Release%2Ffoo_spotify.fb2k-component?branch=master&job=Configuration%3A%20Release)

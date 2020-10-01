@@ -32,7 +32,7 @@ def generate():
         output.write('The linked notices are provided for information only.\n')
         output.write('\n')
         for (dep_name, license) in index:
-            output.write(f'- [{dep_name} - {license}](licenses/{quote(dep_name)})\n')
+            output.write(f'- [{dep_name} - {license}](licenses/{quote(dep_name)}.txt)\n')
 
     print(f'Generated file: {output_file}')
 
