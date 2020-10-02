@@ -41,7 +41,7 @@ def setup( skip_submodules_download,
     cur_dir = Path(__file__).parent.absolute()
     root_dir = cur_dir.parent
     scripts_path = root_dir/'submodules'/'fb2k_utils'/'scripts'
-           
+
     if (not skip_submodules_download):
         call_decorator('Downloading submodules')(download_submodules.download)()
         if (not skip_submodules_patches):
@@ -50,11 +50,18 @@ def setup( skip_submodules_download,
             )(
                 root_dir=root_dir
             )
-            
+
+    call_decorator('Version header generation')(
+        load_module(scripts_path/'generate_version_header.py').generate_header_custom
+    )(
+        repo_dir=root_dir,
+        output_dir=root_dir/'_result'/'AllPlatforms'/'generated',
+        component_prefix='SPTF'
+    )
     call_decorator('Commit hash header generation')(
         load_module(scripts_path/'generate_commit_hash_header.py').generate_header_custom
     )(
-        root_dir=root_dir,
+        repo_dir=root_dir,
         output_dir=root_dir/'_result'/'AllPlatforms'/'generated',
         component_prefix='SPTF'
     )
@@ -62,7 +69,7 @@ def setup( skip_submodules_download,
     )(
         load_module(scripts_path/'generate_source_link_config.py').generate_config_custom
     )(
-        base_dir=root_dir, 
+        repo_dir=root_dir,
         output_dir=root_dir/'_result'/'AllPlatforms'/'generated',
         repo='theqwertiest/foo_spotify'
     )

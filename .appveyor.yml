@@ -70,6 +70,8 @@ install:
   - choco install gh -y
   - refreshenv
   - gh config set -h github.com git_protocol https
+  # PIP
+  - py -3 -m pip install semver
   # Component
   - py -u scripts\setup.py
 
