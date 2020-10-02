@@ -12,6 +12,7 @@
 #include <component_paths.h>
 
 #include <libspotify/api.h>
+#include <qwr/abort_callback.h>
 #include <qwr/error_popup.h>
 #include <qwr/thread_helpers.h>
 
@@ -202,8 +203,9 @@ bool LibSpotify_Backend::Relogin( abort_callback& abort )
     return ( retStatus.has_value() ? *retStatus : false );
 }
 
-bool LibSpotify_Backend::LoginWithUI( HWND hWnd, abort_callback& abort )
+bool LibSpotify_Backend::LoginWithUI( HWND hWnd )
 {
+    // TODO: add abortable as a method argument
     assert( core_api::assert_main_thread() );
 
     {
@@ -237,7 +239,8 @@ bool LibSpotify_Backend::LoginWithUI( HWND hWnd, abort_callback& abort )
             sp_session_login( pSpSession_, cpr->un.data(), cpr->pw.data(), true, nullptr );
         }
 
-        retStatus = WaitForLoginStatusUpdate( abort );
+        qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "LibSpotify wait for login update" ) );
+        retStatus = WaitForLoginStatusUpdate( tac );
     } while ( retStatus.has_value() && !*retStatus );
 
     return ( retStatus.has_value() ? *retStatus : false );
@@ -408,12 +411,11 @@ void LibSpotify_Backend::logged_in( sp_error error )
     }
     else
     {
-        ::fb2k::inMainThread2( [&, error] {
+        {
             std::lock_guard lock( loginMutex_ );
-
-            qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, fmt::format( "Failed to login:\n{}", sp_error_message( error ) ) );
             loginStatus_ = LoginStatus::uninitialized;
-        } );
+        }
+        qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, fmt::format( "Failed to login:\n{}", sp_error_message( error ) ) );
     }
 }
 

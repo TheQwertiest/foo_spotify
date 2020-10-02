@@ -42,7 +42,7 @@ public:
     }
 
     bool Relogin( abort_callback& abort );
-    bool LoginWithUI( HWND hWnd, abort_callback& abort );
+    bool LoginWithUI( HWND hWnd );
     void LogoutAndForget( abort_callback& abort );
 
     std::string GetLoggedInUserName();

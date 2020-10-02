@@ -96,9 +96,10 @@ BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
     textWebApi_ = GetDlgItem( IDC_STATIC_WEBAPI_STATUS );
 
     pStatusThread_ = std::make_unique<std::thread>( [this] {
-        qwr::TimedAbortCallback tac;
-
-        const auto lsStatus = SpotifyInstance::Get().GetLibSpotify_Backend().Relogin( tac );
+        const auto lsStatus = [] {
+            qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "LibSpotify relogin" ) );
+            return SpotifyInstance::Get().GetLibSpotify_Backend().Relogin( tac );
+        }();
         const auto waStatus = [&] {
             auto& auth = SpotifyInstance::Get().GetWebApi_Backend().GetAuthorizer();
             if ( !auth.IsAuthenticated() )
@@ -107,6 +108,7 @@ BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
             }
             try
             {
+                qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "WebApi relogin" ) );
                 auth.AuthenticateWithRefreshToken( tac );
                 return true;
             }
@@ -185,15 +187,14 @@ void Preferences::OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wnd
     (void)nID;
     (void)wndCtl;
 
-    qwr::TimedAbortCallback tac;
-
     auto& lsBackend = SpotifyInstance::Get().GetLibSpotify_Backend();
     if ( libSpotifyStatus_ == LoginStatus::logged_out )
     {
-        libSpotifyStatus_ = ( lsBackend.LoginWithUI( m_hWnd, tac ) ? LoginStatus::logged_in : LoginStatus::logged_out );
+        libSpotifyStatus_ = ( lsBackend.LoginWithUI( m_hWnd ) ? LoginStatus::logged_in : LoginStatus::logged_out );
     }
     else
     {
+        qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "LibSpotify logout" ) );
         lsBackend.LogoutAndForget( tac );
         libSpotifyStatus_ = LoginStatus::logged_out;
     }
@@ -276,7 +277,7 @@ void Preferences::UpdateLibSpotifyUi()
 void Preferences::UpdateWebApiUi()
 {
     const auto getUsername = [] {
-        qwr::TimedAbortCallback tac;
+        qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "WebApi get username" ) );
         try
         {
             auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
