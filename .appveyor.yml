@@ -44,7 +44,7 @@ environment:
   APPVEYOR_IGNORE_COMMIT_FILTERING_ON_TAG: true
   git_user_email: qwertiest@mail.ru
   git_user_name: TheQwertiest
-  GITHUB_ACCESS_TOKEN:
+  GITHUB_TOKEN:
     secure: gBfHQnRcGcTS0yQXWOHhKfDkTZfIBwPIDjTsCQOGmOSPkRqs1QPYBX47BjCvJKim
 
 # this is how to allow failing jobs in the matrix
@@ -57,6 +57,7 @@ cache:
 
 # scripts that run after cloning repository
 install:
+  #  vcpkg
   - cd C:\Tools\vcpkg
   - git pull
   - .\bootstrap-vcpkg.bat
@@ -65,6 +66,11 @@ install:
   - cmd: set VCPKG_PLATFORM_TOOLSET=v142
   - vcpkg install cpprestsdk:x86-windows-static
   - vcpkg integrate install
+  # GitHub CLI
+  - choco install gh -y
+  - refreshenv
+  - gh config set -h github.com git_protocol https
+  # Component
   - py -u scripts\setup.py
 
 #---------------------------------#
@@ -134,7 +140,7 @@ artifacts:
 deploy:
   description: 'Dummy description'
   provider: GitHub
-  auth_token: $(GITHUB_ACCESS_TOKEN)
+  auth_token: $(GITHUB_TOKEN)
   artifact: /foo_spotify.*/           # upload all NuGet packages to release assets
   prerelease: true
   on:
@@ -160,6 +166,11 @@ deploy_script:
 
 # on successful build
 on_success:
+  - ps: |
+        If ($env:APPVEYOR_REPO_TAG -eq $true -and $env:CONFIGURATION -eq "Release")
+        {
+          py -u submodules\fb2k_utils\scripts\close_gh_issues.py
+        }
 
 # on build failure
 on_failure:
