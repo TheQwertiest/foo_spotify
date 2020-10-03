@@ -168,10 +168,27 @@ deploy_script:
 
 # on successful build
 on_success:
+  # issues clean up
   - ps: |
         If ($env:APPVEYOR_REPO_TAG -eq $true -and $env:CONFIGURATION -eq "Release")
         {
           py -u submodules\fb2k_utils\scripts\close_gh_issues.py
+        }
+  # gh-pages
+  - ps: |
+        If ($env:APPVEYOR_REPO_TAG -eq $true -and $env:CONFIGURATION -eq "Release")
+        {
+          git config --global credential.helper store
+          Add-Content "$env:USERPROFILE\.git-credentials" "https://$($env:GITHUB_ACCESS_TOKEN):x-oauth-basic@github.com`n"
+          git config --global user.email $env:git_user_email
+          git config --global user.name $env:git_user_name
+          git clone -q --depth=1 -b gh-pages https://github.com/$($env:APPVEYOR_REPO_NAME).git gh-pages
+          py -u scripts\update_gh_pages.py
+          cd gh-pages
+          git add -A 2>&1
+          git commit -q -m "Updated documentation: $env:APPVEYOR_REPO_TAG_NAME ($env:APPVEYOR_REPO_COMMIT)"
+          git push -q origin gh-pages
+          cd $env:APPVEYOR_BUILD_FOLDER
         }
 
 # on build failure
