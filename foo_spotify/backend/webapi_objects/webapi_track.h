@@ -25,7 +25,7 @@ struct WebApi_Track_Simplified
     uint32_t duration_ms;
     std::string id;
     std::string name;
-    std::string preview_url;
+    std::optional<std::string> preview_url;
     uint32_t track_number;
 };
 
@@ -52,7 +52,7 @@ struct WebApi_Track
     uint32_t duration_ms;
     std::string id;
     std::string name;
-    std::string preview_url;
+    std::optional<std::string> preview_url;
     uint32_t track_number;
 };
 
