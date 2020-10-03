@@ -70,9 +70,14 @@
     <ClCompile Include="ui\ui_not_auth.cpp">
       <Filter>ui</Filter>
     </ClCompile>
-    <ClCompile Include="backend\audio_buffer.cpp" />
     <ClCompile Include="fb2k\acfu_integration.cpp">
       <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\config.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
+    <ClCompile Include="backend\audio_buffer.cpp">
+      <Filter>backend</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="ui\ui_not_auth.h">
       <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="fb2k\config.h">
+      <Filter>fb2k</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

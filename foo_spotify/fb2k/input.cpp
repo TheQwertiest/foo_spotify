@@ -6,6 +6,7 @@
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_objects_all.h>
+#include <fb2k/config.h>
 #include <fb2k/file_info_filler.h>
 
 #include <qwr/string_helpers.h>
@@ -99,9 +100,9 @@ private:
     wrapper::Ptr<sp_track> track_;
     std::unordered_multimap<std::string, std::string> trackMeta_;
 
-    t_filestats stats_;
-    int channels_;
-    int sampleRate_;
+    int channels_{};
+    int sampleRate_{};
+    int bitRate_{};
 };
 } // namespace
 
@@ -218,6 +219,29 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
 
         p_abort.sleep( 0.05 );
     }
+
+    bitRate_ = [] {
+        switch ( static_cast<sp_bitrate>( static_cast<uint8_t>( config::preferred_bitrate ) ) )
+        {
+        case SP_BITRATE_160k:
+        {
+            return 160;
+        }
+        case SP_BITRATE_320k:
+        {
+            return 320;
+        }
+        case SP_BITRATE_96k:
+        {
+            return 96;
+        }
+        default:
+        {
+            assert( false );
+            return 0;
+        }
+        }
+    }();
 }
 
 void InputSpotify::get_info( t_int32 subsong, file_info& p_info, abort_callback& p_abort )
@@ -239,7 +263,7 @@ void InputSpotify::get_info( t_int32 subsong, file_info& p_info, abort_callback&
 
 foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort )
 {
-    return stats_;
+    return t_filestats{};
 }
 
 void InputSpotify::decode_initialize( t_int32 subsong, unsigned p_flags, abort_callback& p_abort )
@@ -333,6 +357,8 @@ bool InputSpotify::decode_get_dynamic_info( file_info& p_out, double& p_timestam
 {
     p_out.info_set_int( "CHANNELS", channels_ );
     p_out.info_set_int( "SAMPLERATE", sampleRate_ );
+    p_out.info_set_bitrate( bitRate_ );
+
     return true;
 }
 

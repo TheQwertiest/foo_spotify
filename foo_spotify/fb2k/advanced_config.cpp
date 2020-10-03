@@ -15,9 +15,19 @@ advconfig_branch_factory branch_network(
 namespace sptf::config::advanced
 {
 
-advconfig_string_factory network_proxy(
-    "Proxy",
+advconfig_string_factory_MT network_proxy(
+    "Proxy: url",
     sptf::guid::adv_var_network_proxy, sptf::guid::adv_branch_network, 0,
+    "" );
+
+advconfig_string_factory_MT network_proxy_username(
+    "Proxy: username",
+    sptf::guid::adv_var_network_proxy_username, sptf::guid::adv_branch_network, 1,
+    "" );
+
+advconfig_string_factory_MT network_proxy_password(
+    "Proxy: password",
+    sptf::guid::adv_var_network_proxy_password, sptf::guid::adv_branch_network, 2,
     "" );
 
 } // namespace sptf::config::advanced

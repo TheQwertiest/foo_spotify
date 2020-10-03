@@ -7,6 +7,7 @@
 #include <backend/webapi_auth.h>
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_user.h>
+#include <fb2k/config.h>
 
 #include <component_urls.h>
 
@@ -59,12 +60,19 @@ namespace sptf::ui
 {
 
 Preferences::Preferences( preferences_page_callback::ptr callback )
+    : callback_( callback )
+    , preferredBitrate_( config::preferred_bitrate )
+    , ddxOptions_( { qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_ComboBox>( preferredBitrate_, IDC_COMBO_BITRATE ) } )
 {
-    (void)callback;
 }
 
 Preferences::~Preferences()
 {
+    for ( auto& ddxOpt: ddxOptions_ )
+    {
+        ddxOpt->Option().Revert();
+    }
+    UpdateBitrate();
 }
 
 HWND Preferences::get_wnd()
@@ -74,26 +82,55 @@ HWND Preferences::get_wnd()
 
 t_uint32 Preferences::get_state()
 {
-    return 0;
+    const bool hasChanged =
+        ddxOptions_.cend() != std::find_if( ddxOptions_.cbegin(), ddxOptions_.cend(), []( const auto& ddxOpt ) {
+            return ddxOpt->Option().HasChanged();
+        } );
+
+    return ( preferences_state::resettable | ( hasChanged ? preferences_state::changed : 0 ) );
 }
 
 void Preferences::apply()
 {
-    return;
+    for ( auto& ddxOpt: ddxOptions_ )
+    {
+        ddxOpt->Option().Apply();
+    }
+    UpdateBitrate();
+
+    callback_->on_state_changed();
 }
 
 void Preferences::reset()
 {
-    return;
+    for ( auto& ddxOpt: ddxOptions_ )
+    {
+        ddxOpt->Option().ResetToDefault();
+    }
+    UpdateBitrate();
+    UpdateUiFromCfg();
+
+    callback_->on_state_changed();
 }
 
 BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
 {
+    comboBitrate_ = GetDlgItem( IDC_COMBO_BITRATE );
+    comboBitrate_.AddString( L"160 kbit/s" );
+    comboBitrate_.AddString( L"320 kbit/s" );
+    comboBitrate_.AddString( L"96 kbit/s" );
+
     btnLibSpotify_ = GetDlgItem( IDC_BTN_LOGIN_LIBSPOTIFY );
     btnWebApi_ = GetDlgItem( IDC_BTN_LOGIN_WEBAPI );
 
     textLibSpotify_ = GetDlgItem( IDC_STATIC_LIBSPOTIFY_STATUS );
     textWebApi_ = GetDlgItem( IDC_STATIC_WEBAPI_STATUS );
+
+    for ( auto& ddxOpt: ddxOptions_ )
+    {
+        ddxOpt->Ddx().SetHwnd( m_hWnd );
+    }
+    UpdateUiFromCfg();
 
     pStatusThread_ = std::make_unique<std::thread>( [this] {
         const auto lsStatus = [] {
@@ -181,6 +218,24 @@ HBRUSH Preferences::OnCtlColorStatic( CDCHandle dc, CStatic wndStatic )
     return 0;
 }
 
+void Preferences::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
+{
+    auto it = std::find_if( ddxOptions_.begin(), ddxOptions_.end(), [nID]( auto& val ) {
+        return val->Ddx().IsMatchingId( nID );
+    } );
+
+    if ( ddxOptions_.end() != it )
+    {
+        ( *it )->Ddx().ReadFromUi();
+    }
+
+    if ( nID == IDC_COMBO_BITRATE )
+    {
+        UpdateBitrate();
+        callback_->on_state_changed();
+    }
+}
+
 void Preferences::OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
     (void)uNotifyCode;
@@ -266,6 +321,19 @@ LRESULT Preferences::OnStatusUpdateFinish( UINT uMsg, WPARAM wParam, LPARAM lPar
     return 0;
 }
 
+void Preferences::UpdateUiFromCfg()
+{
+    if ( !this->m_hWnd )
+    {
+        return;
+    }
+
+    for ( auto& ddxOpt: ddxOptions_ )
+    {
+        ddxOpt->Ddx().WriteToUi();
+    }
+}
+
 void Preferences::UpdateLibSpotifyUi()
 {
     const auto getUsername = [] {
@@ -341,6 +409,20 @@ void Preferences::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStati
     default:
         break;
     }
+}
+
+void Preferences::UpdateBitrate()
+{
+    const auto bitrate = preferredBitrate_.GetCurrentValue();
+    assert( bitrate >= 0 && bitrate <= 2 );
+    auto& lsBackend = SpotifyInstance::Get().GetLibSpotify_Backend();
+    lsBackend.ExecSpMutex( [&] {
+        const auto sp = sp_session_preferred_bitrate( lsBackend.GetWhateverSpSession(), static_cast<sp_bitrate>( bitrate ) );
+        if ( sp != SP_ERROR_OK )
+        {
+            qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
+        }
+    } );
 }
 
 } // namespace sptf::ui

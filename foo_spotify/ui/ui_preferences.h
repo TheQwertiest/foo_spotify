@@ -2,6 +2,9 @@
 
 #include <resource.h>
 
+#include <qwr/fb2k_helpers_config.h>
+#include <qwr/ui_ddx_option.h>
+
 #include <thread>
 
 namespace sptf::ui
@@ -43,6 +46,7 @@ protected:
         MSG_WM_INITDIALOG( OnInitDialog )
         MSG_WM_DESTROY( OnDestroy )
         MSG_WM_CTLCOLORSTATIC( OnCtlColorStatic )
+        COMMAND_HANDLER_EX( IDC_COMBO_BITRATE, CBN_SELCHANGE, OnDdxChange )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_LIBSPOTIFY, BN_CLICKED, OnLibSpotifyLoginClick )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_WEBAPI, BN_CLICKED, OnWebApiLoginClick )
         MESSAGE_HANDLER( kOnWebApiLoginResponse, OnWebApiLoginResponse )
@@ -55,18 +59,27 @@ private:
 
     HBRUSH OnCtlColorStatic( CDCHandle dc, CStatic wndStatic );
 
+    void OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl );
     void OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     void OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl );
     LRESULT OnWebApiLoginResponse( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled );
     LRESULT OnStatusUpdateFinish( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled );
 
 private:
+    void UpdateUiFromCfg();
     void UpdateLibSpotifyUi();
     void UpdateWebApiUi();
     void UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn );
 
+    void UpdateBitrate();
+
 private:
     preferences_page_callback::ptr callback_;
+
+    qwr::ui::UiOption<qwr::ConfigUint8_MT> preferredBitrate_;
+    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 1> ddxOptions_;
+
+    CComboBox comboBitrate_;
 
     CButton btnLibSpotify_;
     CButton btnWebApi_;
