@@ -11,6 +11,7 @@
 
 #include <component_urls.h>
 
+#include <qwr/fb2k_helpers_adv_config.h>
 #include <qwr/file_helpers.h>
 #include <qwr/final_action.h>
 #include <qwr/string_helpers.h>
@@ -27,12 +28,12 @@ namespace sptf
 
 WebApi_Backend::WebApi_Backend( AbortManager& abortManager )
     : abortManager_( abortManager )
-    , client_( url::spotifyApi )
+    , client_( url::spotifyApi, GetClientConfig() )
     , trackCache_( "tracks" )
     , artistCache_( "artists" )
     , albumImageCache_( "albums" )
     , artistImageCache_( "artists" )
-    , pAuth_( std::make_unique<WebApiAuthorizer>( abortManager ) )
+    , pAuth_( std::make_unique<WebApiAuthorizer>( GetClientConfig(), abortManager ) )
 {
 }
 
@@ -226,6 +227,27 @@ fs::path WebApi_Backend::GetAlbumImage( const std::string& albumId, const std::s
 fs::path WebApi_Backend::GetArtistImage( const std::string& artistId, const std::string& imgUrl, abort_callback& abort )
 {
     return artistImageCache_.GetImage( artistId, imgUrl, abort );
+}
+
+web::http::client::http_client_config WebApi_Backend::GetClientConfig()
+{
+    const auto proxyUrl = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy ) );
+    const auto proxyUsername = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_username ) );
+    const auto proxyPassword = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_password ) );
+
+    web::http::client::http_client_config config;
+    if ( !proxyUrl.empty() )
+    {
+        web::web_proxy proxy( web::uri::encode_uri( proxyUrl ) );
+        if ( !proxyUsername.empty() && !proxyPassword.empty() )
+        {
+            proxy.set_credentials( web::credentials{ proxyUsername, proxyPassword } );
+        }
+
+        config.set_proxy( std::move( proxy ) );
+    }
+
+    return config;
 }
 
 nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abort_callback& abort )

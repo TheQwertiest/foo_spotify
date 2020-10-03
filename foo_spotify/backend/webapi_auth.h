@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cpprest/asyncrt_utils.h>
+#include <cpprest/http_client.h>
 #include <cpprest/http_msg.h>
 
 #include <chrono>
@@ -18,7 +19,7 @@ class AbortManager;
 class WebApiAuthorizer
 {
 public:
-    WebApiAuthorizer( AbortManager& abortManager );
+    WebApiAuthorizer( const web::http::client::http_client_config& config, AbortManager& abortManager );
     ~WebApiAuthorizer();
 
     bool IsAuthenticated() const;
@@ -43,7 +44,7 @@ private:
     AbortManager& abortManager_;
 
     pplx::cancellation_token_source cts_;
-
+    web::http::client::http_client client_;
     std::unique_ptr<web::http::experimental::listener::http_listener> pListener_;
 
     std::wstring codeVerifier_;

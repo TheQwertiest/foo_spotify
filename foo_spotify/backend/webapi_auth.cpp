@@ -166,8 +166,9 @@ void OpenAuthConfirmationInBrowser( const std::wstring& url )
 namespace sptf
 {
 
-WebApiAuthorizer::WebApiAuthorizer( AbortManager& abortManager )
+WebApiAuthorizer::WebApiAuthorizer( const web::http::client::http_client_config& config, AbortManager& abortManager )
     : abortManager_( abortManager )
+    , client_( url::accountsApi, config )
     , expiresIn_( std::chrono::system_clock::now() )
 {
     const auto authpath = path::WebApiSettings() / "auth.json";
@@ -192,9 +193,6 @@ WebApiAuthorizer::WebApiAuthorizer( AbortManager& abortManager )
             }
         }
     }
-
-    // TODO: move to advanced
-    //config.set_proxy( web::web_proxy( L"http://127.0.0.1:3128" ) );
 }
 
 WebApiAuthorizer::~WebApiAuthorizer()
@@ -304,8 +302,7 @@ void WebApiAuthorizer::AuthenticateWithRefreshToken( abort_callback& abort )
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
     const auto abortableScope = abortManager_.GetAbortableScope( [&localCts] { localCts.cancel(); }, abort );
 
-    web::http::client::http_client client( url::accountsApi );
-    auto response = client.request( req, cts_.get_token() );
+    auto response = client_.request( req, cts_.get_token() );
     HandleAuthenticationResponse( response.get() );
 }
 
@@ -342,8 +339,7 @@ pplx::task<void> WebApiAuthorizer::CompleteAuthentication( const std::wstring& r
     req.headers().set_content_type( L"application/x-www-form-urlencoded" );
     req.set_body( builder.query() );
 
-    web::http::client::http_client client( url::accountsApi );
-    const auto response = co_await client.request( req, cts_.get_token() );
+    const auto response = co_await client_.request( req, cts_.get_token() );
     HandleAuthenticationResponse( response );
 }
 

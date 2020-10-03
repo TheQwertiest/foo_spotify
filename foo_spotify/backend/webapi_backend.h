@@ -50,6 +50,7 @@ public:
     std::filesystem::path GetArtistImage( const std::string& artistId, const std::string& imgUrl, abort_callback& abort );
 
 private:
+    static web::http::client::http_client_config GetClientConfig();
     nlohmann::json GetJsonResponse( const web::uri& requestUri, abort_callback& abort );
 
 private:

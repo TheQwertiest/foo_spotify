@@ -14,6 +14,7 @@
 #include <libspotify/api.h>
 #include <qwr/abort_callback.h>
 #include <qwr/error_popup.h>
+#include <qwr/fb2k_helpers_adv_config.h>
 #include <qwr/thread_helpers.h>
 
 #include <filesystem>
@@ -51,19 +52,20 @@ LibSpotify_Backend::LibSpotify_Backend( AbortManager& abortManager )
     config_.userdata = this;
     config_.callbacks = &callbacks_;
 
-    // config is main thread only
-    /*
-     pfc::string8 proxy;
-     sptf::config::advanced::network_proxy.get( proxy );
-     if ( !proxy.is_empty() )
-     {
-         config_.proxy = proxy.c_str();
-     }
-     */
+    const auto proxyUrl = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy );
+    const auto proxyUsername = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_username );
+    const auto proxyPassword = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_password );
+    if ( !proxyUrl.empty() )
+    {
+        config_.proxy = proxyUrl.c_str();
+        if ( !proxyUsername.empty() && !proxyPassword.empty() )
+        {
+            config_.proxy_username = proxyUsername.c_str();
+            config_.proxy_password = proxyPassword.c_str();
+        }
+    }
 
     /*
-    config_.proxy_username = ...;
-    config_.proxy_password = ...;
     config_.tracefile = ...;
     */
 
