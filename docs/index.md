@@ -42,7 +42,7 @@ Features:
 
 [changelog]: changelog.md
 [3rdparty_license]: third_party_notices.md
-[todo]: https://github.com/TheQwertiest/foo_spider_monkey_panel/projects/1
+[todo]: https://github.com/TheQwertiest/foo_spotify/projects/1
 [version_badge]: https://img.shields.io/github/release/theqwertiest/foo_spotify.svg
 [appveyor_badge]: https://ci.appveyor.com/api/projects/status/t5bhoxmfgavhq81m/branch/master?svg=true
 [codacy_badge]: https://api.codacy.com/project/badge/Grade/319298ca5bd64a739d1e70e3e27d59ab
