@@ -14,7 +14,7 @@
 #include <libspotify/api.h>
 #include <qwr/abort_callback.h>
 #include <qwr/error_popup.h>
-#include <qwr/fb2k_helpers_adv_config.h>
+#include <qwr/fb2k_adv_config.h>
 #include <qwr/thread_helpers.h>
 
 #include <filesystem>

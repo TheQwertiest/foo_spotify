@@ -221,24 +221,24 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
     }
 
     bitRate_ = [] {
-        switch ( static_cast<sp_bitrate>( static_cast<uint8_t>( config::preferred_bitrate ) ) )
+        switch ( config::preferred_bitrate )
         {
-        case SP_BITRATE_160k:
+        case config::BitrateSettings::Bitrate96k:
+        {
+            return 96;
+        }
+        case config::BitrateSettings::Bitrate160k:
         {
             return 160;
         }
-        case SP_BITRATE_320k:
+        case config::BitrateSettings::Bitrate320k:
         {
             return 320;
-        }
-        case SP_BITRATE_96k:
-        {
-            return 96;
         }
         default:
         {
             assert( false );
-            return 0;
+            return 320;
         }
         }
     }();

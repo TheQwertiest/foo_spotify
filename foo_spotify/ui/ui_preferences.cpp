@@ -61,7 +61,11 @@ namespace sptf::ui
 
 Preferences::Preferences( preferences_page_callback::ptr callback )
     : callback_( callback )
-    , preferredBitrate_( config::preferred_bitrate )
+    , preferredBitrate_(
+          config::preferred_bitrate,
+          { { config::BitrateSettings::Bitrate96k, 0 },
+            { config::BitrateSettings::Bitrate160k, 1 },
+            { config::BitrateSettings::Bitrate320k, 2 } } )
     , ddxOptions_( { qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_ComboBox>( preferredBitrate_, IDC_COMBO_BITRATE ) } )
 {
 }
@@ -72,7 +76,6 @@ Preferences::~Preferences()
     {
         ddxOpt->Option().Revert();
     }
-    UpdateBitrate();
 }
 
 HWND Preferences::get_wnd()
@@ -96,7 +99,7 @@ void Preferences::apply()
     {
         ddxOpt->Option().Apply();
     }
-    UpdateBitrate();
+    ApplyBitrateChange();
 
     callback_->on_state_changed();
 }
@@ -107,7 +110,6 @@ void Preferences::reset()
     {
         ddxOpt->Option().ResetToDefault();
     }
-    UpdateBitrate();
     UpdateUiFromCfg();
 
     callback_->on_state_changed();
@@ -116,9 +118,9 @@ void Preferences::reset()
 BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
 {
     comboBitrate_ = GetDlgItem( IDC_COMBO_BITRATE );
+    comboBitrate_.AddString( L"96 kbit/s" );
     comboBitrate_.AddString( L"160 kbit/s" );
     comboBitrate_.AddString( L"320 kbit/s" );
-    comboBitrate_.AddString( L"96 kbit/s" );
 
     btnLibSpotify_ = GetDlgItem( IDC_BTN_LOGIN_LIBSPOTIFY );
     btnWebApi_ = GetDlgItem( IDC_BTN_LOGIN_WEBAPI );
@@ -231,7 +233,6 @@ void Preferences::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
 
     if ( nID == IDC_COMBO_BITRATE )
     {
-        UpdateBitrate();
         callback_->on_state_changed();
     }
 }
@@ -411,16 +412,15 @@ void Preferences::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStati
     }
 }
 
-void Preferences::UpdateBitrate()
+void Preferences::ApplyBitrateChange()
 {
-    const auto bitrate = preferredBitrate_.GetCurrentValue();
-    assert( bitrate >= 0 && bitrate <= 2 );
+    const auto bitrate = preferredBitrate_.GetCurrentEnum();
     auto& lsBackend = SpotifyInstance::Get().GetLibSpotify_Backend();
     lsBackend.ExecSpMutex( [&] {
-        const auto sp = sp_session_preferred_bitrate( lsBackend.GetWhateverSpSession(), static_cast<sp_bitrate>( bitrate ) );
+        const auto sp = sp_session_preferred_bitrate( lsBackend.GetWhateverSpSession(), static_cast<sp_bitrate>( static_cast<uint8_t>( bitrate ) ) );
         if ( sp != SP_ERROR_OK )
         {
-            qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
+            qwr::ReportErrorWithPopup( SPTF_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
         }
     } );
 }

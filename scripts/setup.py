@@ -10,7 +10,6 @@ from typing import Union
 
 import call_wrapper
 import download_submodules
-import generate_third_party
 
 PathLike = Union[str, Path]
 
@@ -73,7 +72,13 @@ def setup( skip_submodules_download,
         output_dir=root_dir/'_result'/'AllPlatforms'/'generated',
         repo='theqwertiest/foo_spotify'
     )
-    call_decorator('3rd-party notices generation')(generate_third_party.generate)()
+    call_decorator('3rd-party notices generation'
+    )(
+        load_module(scripts_path/'generate_third_party.py').generate
+    )(
+        root_dir=root_dir,
+        component_name='Spotify Integration'
+    )
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Setup project')

@@ -11,7 +11,7 @@
 
 #include <component_urls.h>
 
-#include <qwr/fb2k_helpers_adv_config.h>
+#include <qwr/fb2k_adv_config.h>
 #include <qwr/file_helpers.h>
 #include <qwr/final_action.h>
 #include <qwr/string_helpers.h>

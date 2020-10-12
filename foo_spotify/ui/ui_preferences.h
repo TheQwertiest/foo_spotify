@@ -1,8 +1,10 @@
 #pragma once
 
+#include <fb2k/config.h>
+
 #include <resource.h>
 
-#include <qwr/fb2k_helpers_config.h>
+#include <qwr/fb2k_config_ui_option.h>
 #include <qwr/ui_ddx_option.h>
 
 #include <thread>
@@ -71,12 +73,12 @@ private:
     void UpdateWebApiUi();
     void UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn );
 
-    void UpdateBitrate();
+    void ApplyBitrateChange();
 
 private:
     preferences_page_callback::ptr callback_;
 
-    qwr::ui::UiOption<qwr::ConfigUint8_MT> preferredBitrate_;
+    qwr::ui::UiOption<decltype( config::preferred_bitrate )> preferredBitrate_;
     std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 1> ddxOptions_;
 
     CComboBox comboBitrate_;
