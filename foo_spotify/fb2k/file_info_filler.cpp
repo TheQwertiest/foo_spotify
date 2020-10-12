@@ -33,7 +33,7 @@ void FillFileInfoWithMeta( const std::unordered_multimap<std::string, std::strin
         const auto er = meta.equal_range( std::string( metaName.begin(), metaName.end() ) );
         for ( auto it = er.first; it != er.second; ++it )
         {
-            const auto [key, val] = *er.first;
+            const auto [key, val] = *it;
             p_info.meta_add( metaName.data(), val.c_str() );
         }
     };
