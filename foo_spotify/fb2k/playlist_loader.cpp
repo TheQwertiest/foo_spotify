@@ -162,7 +162,7 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         sptf::fb2k::FillFileInfoWithMeta( trackMeta, f_info );
 
         metadb_handle_ptr f_handle;
-        p_callback->handle_create( f_handle, make_playable_location( fmt::format( "spotify:track:{}", track->id ).c_str(), 0 ) );
+        p_callback->handle_create( f_handle, make_playable_location( SpotifyFilteredTrack( track->id ).ToSchema().c_str(), 0 ) );
         p_callback->on_entry_info( f_handle, playlist_loader_callback::entry_user_requested, filestats_invalid, f_info, false );
     }
 }
@@ -174,7 +174,7 @@ void PlaylistLoaderSpotify::write( const char* p_path, const service_ptr_t<file>
 
 const char* PlaylistLoaderSpotify::get_extension()
 {
-    return "spotify";
+    return "";
 }
 
 bool PlaylistLoaderSpotify::can_write()

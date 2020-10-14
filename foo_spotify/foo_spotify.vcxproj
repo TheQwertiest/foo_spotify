@@ -120,6 +120,7 @@
     <ClCompile Include="fb2k\advanced_config.cpp" />
     <ClCompile Include="fb2k\album_art.cpp" />
     <ClCompile Include="fb2k\config.cpp" />
+    <ClCompile Include="fb2k\filesystem.cpp" />
     <ClCompile Include="fb2k\file_info_filler.cpp" />
     <ClCompile Include="fb2k\input.cpp" />
     <ClCompile Include="fb2k\playback.cpp" />

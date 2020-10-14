@@ -17,6 +17,7 @@
 #include <functional>
 #include <vector>
 
+using namespace std::literals::string_view_literals;
 using namespace sptf;
 
 namespace
@@ -400,8 +401,10 @@ bool InputSpotify::g_is_our_content_type( const char* p_content_type )
 }
 
 bool InputSpotify::g_is_our_path( const char* p_full_path, const char* p_extension )
-{ // accept only filtered input
-    return std::string_view( p_full_path )._Starts_with( "spotify:track:" );
+{
+    (void)p_extension;
+    // accept only filtered input
+    return SpotifyFilteredTrack::IsValid( p_full_path, false );
 }
 
 t_uint32 InputSpotify::get_subsong_count()

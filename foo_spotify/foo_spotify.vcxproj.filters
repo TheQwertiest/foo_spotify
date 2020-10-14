@@ -79,6 +79,9 @@
     <ClCompile Include="backend\audio_buffer.cpp">
       <Filter>backend</Filter>
     </ClCompile>
+    <ClCompile Include="fb2k\filesystem.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />

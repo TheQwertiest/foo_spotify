@@ -26,7 +26,7 @@ private:
 class AlbumArtExtractorSpotify : public album_art_extractor
 {
 public:
-    AlbumArtExtractorSpotify();
+    AlbumArtExtractorSpotify() = default;
 
     bool is_our_path( const char* p_path, const char* p_extension ) override;
     album_art_extractor_instance_ptr open( file_ptr p_filehint, const char* p_path, abort_callback& p_abort ) override;
@@ -82,24 +82,9 @@ album_art_data_ptr AlbumArtExtractorInstanceSpotify::query( const GUID& p_what, 
     return album_art_data_impl::g_create( file.get_ptr(), (size_t)file->get_size_ex( p_abort ), p_abort );
 }
 
-AlbumArtExtractorSpotify::AlbumArtExtractorSpotify()
-{
-}
-
 bool AlbumArtExtractorSpotify::is_our_path( const char* p_path, const char* p_extension )
 {
-    const auto spotifyObject = [&]() -> std::optional<SpotifyObject> {
-        try
-        {
-            return SpotifyObject( p_path );
-        }
-        catch ( const qwr::QwrException& )
-        {
-            return std::nullopt;
-        }
-    }();
-
-    return ( spotifyObject && spotifyObject->type == "track" );
+    return SpotifyFilteredTrack::IsValid( p_path, false );
 }
 
 album_art_extractor_instance_ptr AlbumArtExtractorSpotify::open( file_ptr p_filehint, const char* p_path, abort_callback& p_abort )
