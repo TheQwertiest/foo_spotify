@@ -4,20 +4,20 @@
 
 #include <qwr/string_helpers.h>
 
-namespace sptf::fb2k
+namespace
 {
 
-void FillFileInfoWithMeta( const std::unordered_multimap<std::string, std::string>& meta, file_info& info )
+void FillMetaInfo( const std::unordered_multimap<std::string, std::string>& meta, file_info& info )
 {
-    auto addMeta = [&]( file_info& p_info, std::string_view metaName ) {
+    auto addMeta = [&]( file_info& info, std::string_view metaName ) {
         const auto er = meta.equal_range( std::string( metaName.begin(), metaName.end() ) );
         if ( er.first != er.second )
         {
             const auto [key, val] = *er.first;
-            p_info.meta_add( metaName.data(), val.c_str() );
+            info.meta_add( metaName.data(), val.c_str() );
         }
     };
-    auto addMetaIfPositive = [&]( file_info& p_info, std::string_view metaName ) {
+    auto addMetaIfPositive = [&]( file_info& info, std::string_view metaName ) {
         const auto er = meta.equal_range( std::string( metaName.begin(), metaName.end() ) );
         if ( er.first != er.second )
         {
@@ -25,16 +25,16 @@ void FillFileInfoWithMeta( const std::unordered_multimap<std::string, std::strin
             auto numOpt = qwr::string::GetNumber<uint32_t>( static_cast<std::string_view>( val ) );
             if ( numOpt && *numOpt )
             {
-                p_info.meta_add( metaName.data(), val.c_str() );
+                info.meta_add( metaName.data(), val.c_str() );
             }
         }
     };
-    auto addMetaMultiple = [&]( file_info& p_info, std::string_view metaName ) {
+    auto addMetaMultiple = [&]( file_info& info, std::string_view metaName ) {
         const auto er = meta.equal_range( std::string( metaName.begin(), metaName.end() ) );
         for ( auto it = er.first; it != er.second; ++it )
         {
             const auto [key, val] = *it;
-            p_info.meta_add( metaName.data(), val.c_str() );
+            info.meta_add( metaName.data(), val.c_str() );
         }
     };
 
@@ -56,6 +56,25 @@ void FillFileInfoWithMeta( const std::unordered_multimap<std::string, std::strin
             info.set_length( *numOpt / 1000.0 );
         }
     }
+}
+
+void FillTechnicalInfo( const std::unordered_multimap<std::string, std::string>& meta, file_info& info )
+{
+    if ( pfc_infinite == info.info_find( "codec" ) )
+    {
+        info.info_set( "codec", "Vorbis" );
+    }
+}
+
+} // namespace
+
+namespace sptf::fb2k
+{
+
+void FillFileInfoWithMeta( const std::unordered_multimap<std::string, std::string>& meta, file_info& info )
+{
+    FillMetaInfo( meta, info );
+    FillTechnicalInfo( meta, info );
 }
 
 } // namespace sptf::fb2k

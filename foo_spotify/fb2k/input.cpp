@@ -100,6 +100,7 @@ private:
     wrapper::Ptr<sp_track> track_;
     std::unordered_multimap<std::string, std::string> trackMeta_;
 
+    bool isFirstBlock_ = false;
     int channels_{};
     int sampleRate_{};
     int bitRate_{};
@@ -268,6 +269,8 @@ foobar2000_io::t_filestats InputSpotify::get_file_stats( abort_callback& p_abort
 
 void InputSpotify::decode_initialize( t_int32 subsong, unsigned p_flags, abort_callback& p_abort )
 {
+    isFirstBlock_ = true;
+
     if ( subsong )
     {
         throw std::exception( "This track does not have any sub-songs" );
@@ -340,6 +343,8 @@ bool InputSpotify::decode_run( audio_chunk& p_chunk, abort_callback& p_abort )
 
 void InputSpotify::decode_seek( double p_seconds, abort_callback& p_abort )
 {
+    isFirstBlock_ = true;
+
     auto& lsBackend = GetInitializedLibSpotify();
     lsBackend.GetAudioBuffer().clear(); // TODO: remove?
     auto pSession = lsBackend.GetInitializedSpSession( p_abort );
@@ -355,9 +360,16 @@ bool InputSpotify::decode_can_seek()
 
 bool InputSpotify::decode_get_dynamic_info( file_info& p_out, double& p_timestamp_delta )
 {
+    if ( !isFirstBlock_ )
+    {
+        return false;
+    }
+
     p_out.info_set_int( "CHANNELS", channels_ );
     p_out.info_set_int( "SAMPLERATE", sampleRate_ );
     p_out.info_set_bitrate( bitRate_ );
+
+    isFirstBlock_ = false;
 
     return true;
 }
