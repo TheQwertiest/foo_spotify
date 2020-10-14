@@ -6,6 +6,7 @@
 #include <nonstd/span.hpp>
 
 #include <filesystem>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -14,6 +15,7 @@ namespace sptf
 
 struct WebApi_User;
 struct WebApi_Track;
+struct WebApi_LocalTrack;
 struct WebApi_Artist;
 class WebApiAuthorizer;
 class AbortManager;
@@ -34,7 +36,9 @@ public:
     std::unique_ptr<const WebApi_Track>
     GetTrack( const std::string& trackId, abort_callback& abort );
 
-    std::vector<std::unique_ptr<const WebApi_Track>>
+    std::tuple<
+        std::vector<std::unique_ptr<const WebApi_Track>>,
+        std::vector<std::unique_ptr<const WebApi_LocalTrack>>>
     GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort );
 
     std::vector<std::unique_ptr<const WebApi_Track>>

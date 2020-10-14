@@ -45,11 +45,10 @@ public:
         qwr::DelayedExecutor::GetInstance().EnableExecution(); ///< Enable task processing (e.g. error popups)
         if ( HasComponent( "foo_input_spotify" ) )
         {
-            qwr::ReportErrorWithPopup(
-                "!!!        `foo_input_spotify` component detected!             !!!\n"
-                "!!! It is incompatible with `foo_spotify` and must be removed! !!!\n"
-                "!!!           Otherwise foobar2000 *will* crash!               !!!",
-                SPTF_UNDERSCORE_NAME );
+            qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME,
+                                       "!!!        `foo_input_spotify` component detected!             !!!\n"
+                                       "!!! It is incompatible with `foo_spotify` and must be removed! !!!\n"
+                                       "!!!           Otherwise foobar2000 *will* crash!               !!!" );
         }
     }
 

@@ -6,6 +6,7 @@
 #include <backend/webapi_objects/webapi_objects_all.h>
 #include <fb2k/file_info_filler.h>
 
+#include <qwr/error_popup.h>
 #include <qwr/string_helpers.h>
 
 using namespace std::literals::string_view_literals;
@@ -89,6 +90,29 @@ public:
 namespace
 {
 
+void PrintSkippedTracks( nonstd::span<const std::unique_ptr<const WebApi_LocalTrack>> tracks )
+{
+    const auto trackIds =
+        ranges::views::transform( tracks,
+                                  []( const auto& pTrack ) -> std::string_view {
+                                      return ( pTrack->name ? *pTrack->name : pTrack->id );
+                                  } )
+        | ranges::to_vector;
+
+    qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME,
+                               fmt::format(
+                                   "Failed to add the following tracks:\n"
+                                   "  {}\n"
+                                   "Reason:\n"
+                                   "  local tracks are not supported",
+                                   fmt::join( trackIds, "\n  " ) ) );
+}
+
+} // namespace
+
+namespace
+{
+
 void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>& p_file, playlist_loader_callback::ptr p_callback, abort_callback& p_abort )
 {
 
@@ -114,7 +138,14 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         }
         else if ( spotifyObject.type == "playlist" )
         {
-            return waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
+            auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
+            if ( !localTracks.empty() )
+            {
+                PrintSkippedTracks( localTracks );
+            }
+
+            // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
+            return std::move( tracks );
         }
         else
         {

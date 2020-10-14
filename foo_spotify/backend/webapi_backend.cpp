@@ -15,6 +15,7 @@
 #include <qwr/file_helpers.h>
 #include <qwr/final_action.h>
 #include <qwr/string_helpers.h>
+#include <qwr/type_traits.h>
 #include <qwr/winapi_error_helpers.h>
 
 #include <filesystem>
@@ -83,12 +84,15 @@ WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
     }
 }
 
-std::vector<std::unique_ptr<const sptf::WebApi_Track>>
+std::tuple<
+    std::vector<std::unique_ptr<const WebApi_Track>>,
+    std::vector<std::unique_ptr<const WebApi_LocalTrack>>>
 WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort )
 {
     size_t offset = 0;
 
-    std::vector<std::unique_ptr<const WebApi_Track>> ret;
+    std::vector<std::unique_ptr<const WebApi_Track>> tracks;
+    std::vector<std::unique_ptr<const WebApi_LocalTrack>> localTracks;
     while ( true )
     {
         web::uri_builder builder;
@@ -104,8 +108,25 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
                                        L"Malformed track data response response: missing `items`" );
 
         auto playlistTracks = itemsIt->get<std::vector<std::unique_ptr<WebApi_PlaylistTrack>>>();
-        auto newData = playlistTracks | ranges::views::transform( []( auto& elem ) { return std::move( elem->track ); } ) | ranges::to_vector;
-        ret.insert( ret.end(), make_move_iterator( newData.begin() ), make_move_iterator( newData.end() ) );
+        for ( auto& playlistTrack: playlistTracks )
+        {
+            std::visit( [&]( auto&& arg ) {
+                using T = std::decay_t<decltype( arg )>;
+                if constexpr ( std::is_same_v<T, WebApi_Track> )
+                {
+                    tracks.emplace_back( std::make_unique<T>( std::move( arg ) ) );
+                }
+                else if constexpr ( std::is_same_v<T, WebApi_LocalTrack> )
+                {
+                    localTracks.emplace_back( std::make_unique<T>( std::move( arg ) ) );
+                }
+                else
+                {
+                    static_assert( qwr::always_false_v<T>, "non-exhaustive visitor!" );
+                }
+            },
+                        *playlistTrack->track );
+        }
 
         if ( responseJson.at( "next" ).is_null() )
         {
@@ -113,8 +134,8 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
         }
     }
 
-    trackCache_.CacheObjects( ret );
-    return ret;
+    trackCache_.CacheObjects( tracks );
+    return { std::move( tracks ), std::move( localTracks ) };
 }
 
 std::vector<std::unique_ptr<const sptf::WebApi_Track>>

@@ -277,7 +277,7 @@ void Preferences::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl 
         }
         catch ( const std::exception& e )
         {
-            qwr::ReportErrorWithPopup( fmt::format( "WebAPI login failed:\n{}", e.what() ), SPTF_NAME );
+            qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "WebAPI login failed:\n{}", e.what() ) );
 
             webApiStatus_ = LoginStatus::logged_out;
             UpdateWebApiUi();
@@ -420,7 +420,7 @@ void Preferences::ApplyBitrateChange()
         const auto sp = sp_session_preferred_bitrate( lsBackend.GetWhateverSpSession(), static_cast<sp_bitrate>( static_cast<uint8_t>( bitrate ) ) );
         if ( sp != SP_ERROR_OK )
         {
-            qwr::ReportErrorWithPopup( SPTF_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
+            qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
         }
     } );
 }

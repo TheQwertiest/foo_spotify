@@ -417,13 +417,13 @@ void LibSpotify_Backend::logged_in( sp_error error )
             std::lock_guard lock( loginMutex_ );
             loginStatus_ = LoginStatus::uninitialized;
         }
-        qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, fmt::format( "Failed to login:\n{}", sp_error_message( error ) ) );
+        qwr::ReportErrorWithPopup( SPTF_NAME, fmt::format( "Failed to login:\n{}", sp_error_message( error ) ) );
     }
 }
 
 void LibSpotify_Backend::message_to_user( const char* message )
 {
-    qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, message );
+    qwr::ReportErrorWithPopup( SPTF_NAME, message );
 }
 
 void LibSpotify_Backend::notify_main_thread()
@@ -462,7 +462,7 @@ void LibSpotify_Backend::end_of_track()
 
 void LibSpotify_Backend::play_token_lost()
 {
-    qwr::ReportErrorWithPopupInMainThread( SPTF_NAME, "Playback has been paused because your Spotify account is being used somewhere else." );
+    qwr::ReportErrorWithPopup( SPTF_NAME, "Playback has been paused because your Spotify account is being used somewhere else." );
 }
 
 void LibSpotify_Backend::connectionstate_updated()
