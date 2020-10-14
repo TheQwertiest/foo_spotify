@@ -23,10 +23,10 @@ void AbortManager::RemoveTask( uint32_t taskId )
 
     const auto itTask = idToTask_.find( taskId );
     assert( itTask != idToTask_.cend() );
-    const auto handle = itTask->second.pAbort;
+    const auto pAbort = itTask->second.pAbort;
     idToTask_.erase( itTask );
 
-    const auto itIds = abortToIds_.find( handle );
+    const auto itIds = abortToIds_.find( pAbort );
     assert( itIds != abortToIds_.cend() );
     auto& ids = itIds->second;
 
@@ -38,6 +38,8 @@ void AbortManager::RemoveTask( uint32_t taskId )
     {
         abortToIds_.erase( itIds );
     }
+
+    assert( abortToIds_.size() <= idToTask_.size() );
 }
 
 void AbortManager::StartThread()

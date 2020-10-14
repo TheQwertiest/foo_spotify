@@ -64,16 +64,15 @@ private:
 
         const auto taskId = [&] {
             std::unique_lock lock( mutex_ );
-            auto id = idCounter_;
-            while ( idToTask_.count( id ) )
-            {
-                id = ++idCounter_;
-            }
-            return id;
-        }();
 
-        {
-            std::unique_lock lock( mutex_ );
+            const auto taskId = [&] {
+                auto id = idCounter_;
+                while ( idToTask_.count( id ) )
+                {
+                    id = ++idCounter_;
+                }
+                return id;
+            }();
 
             if constexpr ( !std::is_copy_constructible_v<T> && std::is_move_constructible_v<T> )
             {
@@ -86,8 +85,10 @@ private:
             {
                 idToTask_.try_emplace( taskId, AbortableTask{ std::make_unique<Task>( std::forward<T>( task ) ), &abort } );
             }
-            abortToIds_[&abort].emplace_back( taskId );
-        }
+
+            return abortToIds_[&abort].emplace_back( taskId );
+        }();
+
         eventCv_.notify_all();
 
         return taskId;
