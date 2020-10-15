@@ -3,8 +3,10 @@
 #include "webapi_auth.h"
 
 #include <backend/spotify_instance.h>
+#include <backend/webapi_auth_scopes.h>
 #include <ui/ui_not_auth.h>
 #include <utils/abort_manager.h>
+#include <utils/json_std_extenders.h>
 
 #include <bcrypt.h>
 #include <component_urls.h>
@@ -19,9 +21,11 @@
 #include <nonstd/span.hpp>
 #include <qwr/file_helpers.h>
 #include <qwr/final_action.h>
+#include <qwr/string_helpers.h>
 
 #include <random>
 #include <string_view>
+#include <unordered_set>
 
 #include <experimental/resumable>
 
@@ -35,6 +39,8 @@
 
 namespace fs = std::filesystem;
 
+using namespace sptf;
+
 namespace
 {
 
@@ -45,14 +51,14 @@ constexpr wchar_t k_clientId[] = L"56b24aee069c4de2937c5e359de82b93";
 namespace
 {
 
-constexpr wchar_t codeVerifierChars[] =
-    L"abcdefghijklmnopqrstuvwxyz"
-    L"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    L"1234567890"
-    L"_.-~";
-
 std::wstring GenerateCodeVerifier()
 {
+    static constexpr wchar_t codeVerifierChars[] =
+        L"abcdefghijklmnopqrstuvwxyz"
+        L"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        L"1234567890"
+        L"_.-~";
+
     std::random_device rd;
     const auto size = std::uniform_int_distribution<size_t>( 43, 128 )( rd );
 
@@ -166,10 +172,43 @@ void OpenAuthConfirmationInBrowser( const std::wstring& url )
 namespace sptf
 {
 
+struct AuthData
+{
+    std::wstring accessToken;
+    std::wstring refreshToken;
+    std::chrono::time_point<std::chrono::system_clock> expiresIn = std::chrono::system_clock::now();
+    WebApiAuthScopes scopes;
+};
+
+void to_json( nlohmann::json& j, const AuthData& p )
+{
+    j["access_token"] = p.accessToken;
+    j["refresh_token"] = p.refreshToken;
+    j["expires_in"] = std::chrono::time_point_cast<std::chrono::minutes>( p.expiresIn ).time_since_epoch().count();
+    j["scopes"] = p.scopes;
+}
+
+void from_json( const nlohmann::json& j, AuthData& p )
+{
+    j.at( "access_token" ).get_to( p.accessToken );
+    j.at( "refresh_token" ).get_to( p.refreshToken );
+    p.expiresIn = std::chrono::time_point<std::chrono::system_clock>( std::chrono::minutes( j.at( "expires_in" ).get<int>() ) );
+    if ( j.contains( "scopes" ) )
+    {
+        j["scopes"].get_to( p.scopes );
+    }
+    else
+    { // for backwards compatibility
+        WebApiAuthScopes scopes;
+        scopes.playlist_read_collaborative = true;
+        scopes.playlist_read_private = true;
+        p.scopes = scopes;
+    }
+}
+
 WebApiAuthorizer::WebApiAuthorizer( const web::http::client::http_client_config& config, AbortManager& abortManager )
     : abortManager_( abortManager )
     , client_( url::accountsApi, config )
-    , expiresIn_( std::chrono::system_clock::now() )
 {
     const auto authpath = path::WebApiSettings() / "auth.json";
     if ( fs::exists( authpath ) )
@@ -177,13 +216,12 @@ WebApiAuthorizer::WebApiAuthorizer( const web::http::client::http_client_config&
         try
         {
             const auto data = qwr::file::ReadFileW( authpath, CP_UTF8, false );
-            const auto dataJson = web::json::value::parse( data );
-            accessToken_ = dataJson.at( L"access_token" ).as_string();
-            refreshToken_ = dataJson.at( L"refresh_token" ).as_string();
-            expiresIn_ = std::chrono::time_point<std::chrono::system_clock>( std::chrono::minutes( dataJson.at( L"expires_in" ).as_integer() ) );
+            const auto dataJson = nlohmann::json::parse( data );
+            dataJson.get_to( pAuthData_ );
         }
         catch ( const std::exception& )
         {
+            pAuthData_.reset();
             try
             {
                 fs::remove( authpath );
@@ -201,17 +239,17 @@ WebApiAuthorizer::~WebApiAuthorizer()
     StopResponseListener();
 }
 
-bool WebApiAuthorizer::IsAuthenticated() const
+bool WebApiAuthorizer::HasRefreshToken() const
 {
     std::lock_guard lock( accessTokenMutex_ );
-    return !accessToken_.empty() && !refreshToken_.empty();
+    return !!pAuthData_;
 }
 
 const std::wstring WebApiAuthorizer::GetAccessToken( abort_callback& abort )
 {
     std::lock_guard lock( accessTokenMutex_ );
 
-    if ( refreshToken_.empty() )
+    if ( !pAuthData_ )
     {
         ::fb2k::inMainThread( [&] {
             playback_control::get()->stop();
@@ -220,20 +258,19 @@ const std::wstring WebApiAuthorizer::GetAccessToken( abort_callback& abort )
         throw qwr::QwrException( "Failed to get authenticated Spotify session" );
     }
 
-    if ( std::chrono::system_clock::now() - expiresIn_ > std::chrono::minutes( 1 ) )
+    if ( std::chrono::system_clock::now() - pAuthData_->expiresIn > std::chrono::minutes( 1 ) )
     {
         AuthenticateWithRefreshToken( abort );
     }
 
-    assert( !accessToken_.empty() );
-    return accessToken_;
+    assert( !pAuthData_->accessToken.empty() );
+    return pAuthData_->accessToken;
 }
 
 void WebApiAuthorizer::ClearAuth()
 {
+    pAuthData_.reset();
     codeVerifier_.clear();
-    accessToken_.clear();
-    refreshToken_.clear();
     state_.clear();
 
     const auto authpath = path::WebApiSettings() / "auth.json";
@@ -253,7 +290,7 @@ void WebApiAuthorizer::CancelAuth()
     ClearAuth();
 }
 
-void WebApiAuthorizer::AuthenticateClean( std::function<void()> onResponseEnd )
+void WebApiAuthorizer::AuthenticateClean( const WebApiAuthScopes& scopes, std::function<void()> onResponseEnd )
 {
     assert( core_api::is_main_thread() );
 
@@ -276,7 +313,7 @@ void WebApiAuthorizer::AuthenticateClean( std::function<void()> onResponseEnd )
     builder.append_query( L"code_challenge", challengeCode );
     // TODO: cookie?
     // builder.append_query( L"state", L"azaza" );
-    builder.append_query( L"scope", web::uri::encode_data_string( L"playlist-read-collaborative playlist-read-private" ), false );
+    builder.append_query( L"scope", web::uri::encode_data_string( scopes.ToWebString() ), false );
 
     OpenAuthConfirmationInBrowser( builder.to_string() );
 }
@@ -288,10 +325,11 @@ void WebApiAuthorizer::AuthenticateClean_Cleanup()
 
 void WebApiAuthorizer::AuthenticateWithRefreshToken( abort_callback& abort )
 {
+    assert( HasRefreshToken() );
+
     web::uri_builder builder;
     builder.append_query( L"grant_type", L"refresh_token" );
-    assert( !refreshToken_.empty() );
-    builder.append_query( L"refresh_token", refreshToken_ );
+    builder.append_query( L"refresh_token", pAuthData_->refreshToken );
     builder.append_query( L"client_id", web::uri::encode_data_string( k_clientId ), false );
 
     web::http::http_request req( web::http::methods::POST );
@@ -374,6 +412,7 @@ void WebApiAuthorizer::StartResponseListener( std::function<void()> onResponseEn
                 }
                 catch ( const std::exception& e )
                 {
+                    pAuthData_.reset();
                     auto errorMsg = qwr::unicode::ToWide( std::string( e.what() ) );
                     {
                         size_t pos = 0;
@@ -458,14 +497,15 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
                                    L"Malformed authentication response: invalid `token_type`: {}",
                                    responseJson.at( L"token_type" ).as_string() );
 
-    accessToken_ = responseJson.at( L"access_token" ).as_string();
-    refreshToken_ = responseJson.at( L"refresh_token" ).as_string();
-    expiresIn_ = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
+    pAuthData_ = std::make_unique<AuthData>();
+    pAuthData_->accessToken = responseJson.at( L"access_token" ).as_string();
+    pAuthData_->refreshToken = responseJson.at( L"refresh_token" ).as_string();
+    pAuthData_->expiresIn = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
 
-    web::json::value configJson;
-    configJson[L"access_token"] = web::json::value( accessToken_ );
-    configJson[L"refresh_token"] = web::json::value( refreshToken_ );
-    configJson[L"expires_in"] = web::json::value( std::chrono::time_point_cast<std::chrono::minutes>( expiresIn_ ).time_since_epoch().count() );
+    auto scopesSplit = qwr::string::Split<wchar_t>( responseJson.at( L"scope" ).as_string(), L' ' );
+    pAuthData_->scopes = WebApiAuthScopes( scopesSplit );
+
+    nlohmann::json jsonToWrite = pAuthData_;
 
     const auto settingsPath = path::WebApiSettings();
     if ( !fs::exists( settingsPath ) )
@@ -473,7 +513,7 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
         fs::create_directories( settingsPath );
     }
     // not using component config because it's not saved immediately
-    qwr::file::WriteFile( settingsPath / "auth.json", qwr::unicode::ToU8( configJson.serialize() ) );
+    qwr::file::WriteFile( settingsPath / "auth.json", jsonToWrite.dump( 2 ) );
 }
 
 } // namespace sptf

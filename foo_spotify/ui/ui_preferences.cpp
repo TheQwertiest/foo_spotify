@@ -5,6 +5,7 @@
 #include <backend/libspotify_backend.h>
 #include <backend/spotify_instance.h>
 #include <backend/webapi_auth.h>
+#include <backend/webapi_auth_scopes.h>
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_user.h>
 #include <fb2k/config.h>
@@ -13,6 +14,7 @@
 
 #include <qwr/abort_callback.h>
 #include <qwr/error_popup.h>
+#include <qwr/string_helpers.h>
 
 namespace
 {
@@ -141,7 +143,7 @@ BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
         }();
         const auto waStatus = [&] {
             auto& auth = SpotifyInstance::Get().GetWebApi_Backend().GetAuthorizer();
-            if ( !auth.IsAuthenticated() )
+            if ( !auth.HasRefreshToken() )
             {
                 return false;
             }
@@ -273,7 +275,9 @@ void Preferences::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl 
 
         try
         {
-            auth.AuthenticateClean( [&] { ::PostMessage( m_hWnd, kOnWebApiLoginResponse, 0, 0 ); } );
+            const auto authScopes = qwr::unicode::ToWide( static_cast<std::string>( config::webapi_auth_scopes ) );
+            const auto authScopesSplit = qwr::string::Split<wchar_t>( authScopes, L' ' );
+            auth.AuthenticateClean( WebApiAuthScopes( authScopesSplit ), [&] { ::PostMessage( m_hWnd, kOnWebApiLoginResponse, 0, 0 ); } );
         }
         catch ( const std::exception& e )
         {
@@ -302,7 +306,7 @@ LRESULT Preferences::OnWebApiLoginResponse( UINT uMsg, WPARAM wParam, LPARAM lPa
 
     auto& auth = SpotifyInstance::Get().GetWebApi_Backend().GetAuthorizer();
 
-    webApiStatus_ = ( auth.IsAuthenticated() ? LoginStatus::logged_in : LoginStatus::logged_out );
+    webApiStatus_ = ( auth.HasRefreshToken() ? LoginStatus::logged_in : LoginStatus::logged_out );
     UpdateWebApiUi();
 
     return 0;

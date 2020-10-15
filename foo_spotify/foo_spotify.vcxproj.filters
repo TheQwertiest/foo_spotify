@@ -82,6 +82,9 @@
     <ClCompile Include="fb2k\filesystem.cpp">
       <Filter>fb2k</Filter>
     </ClCompile>
+    <ClCompile Include="backend\webapi_auth_scopes.cpp">
+      <Filter>backend</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="fb2k\config.h">
       <Filter>fb2k</Filter>
+    </ClInclude>
+    <ClInclude Include="backend\webapi_auth_scopes.h">
+      <Filter>backend</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

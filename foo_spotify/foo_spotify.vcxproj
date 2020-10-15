@@ -106,6 +106,7 @@
     <ClCompile Include="backend\spotify_instance.cpp" />
     <ClCompile Include="backend\spotify_object.cpp" />
     <ClCompile Include="backend\webapi_auth.cpp" />
+    <ClCompile Include="backend\webapi_auth_scopes.cpp" />
     <ClCompile Include="backend\webapi_backend.cpp" />
     <ClCompile Include="backend\webapi_cache.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_album.cpp" />
@@ -143,6 +144,7 @@
     <ClInclude Include="backend\spotify_instance.h" />
     <ClInclude Include="backend\spotify_object.h" />
     <ClInclude Include="backend\webapi_auth.h" />
+    <ClInclude Include="backend\webapi_auth_scopes.h" />
     <ClInclude Include="backend\webapi_backend.h" />
     <ClInclude Include="backend\webapi_objects\webapi_image.h" />
     <ClInclude Include="backend\webapi_objects\webapi_album.h" />

@@ -15,6 +15,8 @@ namespace sptf
 {
 
 class AbortManager;
+struct WebApiAuthScopes;
+struct AuthData;
 
 class WebApiAuthorizer
 {
@@ -22,14 +24,14 @@ public:
     WebApiAuthorizer( const web::http::client::http_client_config& config, AbortManager& abortManager );
     ~WebApiAuthorizer();
 
-    bool IsAuthenticated() const;
+    bool HasRefreshToken() const;
 
     const std::wstring GetAccessToken( abort_callback& abort );
 
     void ClearAuth();
     void CancelAuth();
 
-    void AuthenticateClean( std::function<void()> onResponseEnd );
+    void AuthenticateClean( const WebApiAuthScopes& scopes, std::function<void()> onResponseEnd );
     void AuthenticateClean_Cleanup();
     void AuthenticateWithRefreshToken( abort_callback& abort );
 
@@ -51,9 +53,7 @@ private:
     std::wstring state_;
 
     mutable std::mutex accessTokenMutex_;
-    std::wstring accessToken_;
-    std::wstring refreshToken_;
-    std::chrono::time_point<std::chrono::system_clock> expiresIn_;
+    std::unique_ptr<AuthData> pAuthData_;
 };
 
 } // namespace sptf

@@ -13,5 +13,6 @@ enum class BitrateSettings : uint8_t
 };
 
 extern qwr::fb2k::ConfigUint8Enum_MT<BitrateSettings> preferred_bitrate;
+extern qwr::fb2k::ConfigString_MT webapi_auth_scopes;
 
 } // namespace sptf::config

@@ -1,13 +1,13 @@
 #pragma once
 
-#include <backend/webapi_objects/webapi_track.h>
-
 #include <memory>
 #include <string>
 #include <variant>
 
 namespace sptf
 {
+
+struct WebApi_Track;
 
 struct WebApi_LocalTrack
 {

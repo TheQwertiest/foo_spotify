@@ -78,4 +78,18 @@ struct adl_serializer<std::optional<T>>
     }
 };
 
+template <>
+struct adl_serializer<std::wstring>
+{
+    static void to_json( json& j, const std::wstring& value )
+    {
+        j = qwr::unicode::ToU8( value );
+    }
+
+    static void from_json( const json& j, std::wstring& value )
+    {
+        value = qwr::unicode::ToWide( j.get<std::string>() );
+    }
+};
+
 } // namespace nlohmann
