@@ -295,11 +295,7 @@ void WebApiAuthorizer::AuthenticateClean( const WebApiAuthScopes& scopes, std::f
 {
     assert( core_api::is_main_thread() );
 
-    if ( pListener_ )
-    {
-        return;
-    }
-
+    StopResponseListener();
     StartResponseListener( onResponseEnd );
 
     // <https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce>
@@ -477,21 +473,21 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
     {
         ClearAuth();
 
-        throw qwr::QwrException( qwr::unicode::ToU8(
-            fmt::format( L"{}: {}\n"
-                         L"Additional data: {}\n",
-                         response.status_code(),
-                         response.reason_phrase(),
-                         [&] {
-                             try
-                             {
-                                 return response.extract_json().get().serialize();
-                             }
-                             catch ( ... )
-                             {
-                                 return response.to_string();
-                             }
-                         }() ) ) );
+        throw qwr::QwrException( L"{}: {}\n"
+                                 L"Additional data: {}\n",
+                                 (int)response.status_code(),
+                                 response.reason_phrase(),
+                                 [&]() -> std::wstring {
+                                     try
+                                     {
+                                         const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
+                                         return qwr::unicode::ToWide( responseJson.dump( 2 ) );
+                                     }
+                                     catch ( ... )
+                                     {
+                                         return response.to_string();
+                                     }
+                                 }() );
     }
 
     const auto responseJson = response.extract_json().get();
