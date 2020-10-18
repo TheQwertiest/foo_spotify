@@ -122,6 +122,10 @@ GetTracks( const SpotifyObject spotifyObject, abort_callback& p_abort )
         // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
         return { std::move( tracks ), TransformToSkippedTracks( localTracks ) };
     }
+    else if ( spotifyObject.type == "artist" )
+    {
+        return { waBackend.GetTopTracksForArtist( spotifyObject.id, p_abort ), std::vector<SkippedTrack>{} };
+    }
     else if ( spotifyObject.type == "track" )
     {
         std::vector<std::unique_ptr<const WebApi_Track>> tmp;

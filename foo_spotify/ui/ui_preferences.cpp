@@ -277,7 +277,10 @@ void Preferences::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl 
         {
             const auto authScopes = qwr::unicode::ToWide( static_cast<std::string>( config::webapi_auth_scopes ) );
             const auto authScopesSplit = qwr::string::Split<wchar_t>( authScopes, L' ' );
-            auth.AuthenticateClean( WebApiAuthScopes( authScopesSplit ), [&] { ::PostMessage( m_hWnd, kOnWebApiLoginResponse, 0, 0 ); } );
+            // TODO: remove me
+            WebApiAuthScopes tmp( authScopesSplit );
+            tmp.user_read_private = true;
+            auth.AuthenticateClean( tmp, [&] { ::PostMessage( m_hWnd, kOnWebApiLoginResponse, 0, 0 ); } );
         }
         catch ( const std::exception& e )
         {

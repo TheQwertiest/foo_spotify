@@ -43,6 +43,9 @@ public:
     std::vector<std::unique_ptr<const WebApi_Track>>
     GetTracksFromAlbum( const std::string& albumId, abort_callback& abort );
 
+    std::vector<std::unique_ptr<const WebApi_Track>>
+    GetTopTracksForArtist( const std::string& artistId, abort_callback& abort );
+
     std::vector<std::unordered_multimap<std::string, std::string>>
     GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>> tracks );
 

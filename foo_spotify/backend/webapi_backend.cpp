@@ -75,7 +75,6 @@ WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort, boo
     }
     else
     {
-
         web::uri_builder builder;
         builder.append_path( L"tracks" );
         builder.append_path( qwr::unicode::ToWide( trackId ) );
@@ -198,6 +197,31 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& 
     return newRet;
 }
 
+std::vector<std::unique_ptr<const WebApi_Track>>
+WebApi_Backend::GetTopTracksForArtist( const std::string& artistId, abort_callback& abort )
+{
+    // TODO: add check for permission and relogin requirement notice
+
+    const auto countryOpt = GetUser( abort )->country;
+    qwr::QwrException::ExpectTrue( countryOpt.has_value(), "Adding artist top tracks requires `user-read-private` permission" );
+
+    web::uri_builder builder;
+    builder.append_path( L"artists" );
+    builder.append_path( qwr::unicode::ToWide( artistId ) );
+    builder.append_path( L"top-tracks" );
+    builder.append_query( L"market", qwr::unicode::ToWide( *countryOpt ) );
+
+    const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+
+    const auto tracksIt = responseJson.find( "tracks" );
+    qwr::QwrException::ExpectTrue( responseJson.cend() != tracksIt,
+                                   L"Malformed track data response response: missing `tracks`" );
+
+    auto ret = tracksIt->get<std::vector<std::unique_ptr<const WebApi_Track>>>();
+    trackCache_.CacheObjects( ret );
+    return ret;
+}
+
 std::vector<std::unordered_multimap<std::string, std::string>>
 WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>> tracks )
 {
@@ -306,21 +330,21 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     const auto response = client_.request( req, localCts.get_token() ).get();
     if ( response.status_code() != 200 )
     {
-        throw qwr::QwrException( qwr::unicode::ToU8(
-            fmt::format( L"{}: {}\n"
-                         L"Additional data: {}\n",
-                         response.status_code(),
-                         response.reason_phrase(),
-                         [&] {
-                             try
-                             {
-                                 return response.extract_json().get().serialize();
-                             }
-                             catch ( ... )
-                             {
-                                 return response.to_string();
-                             }
-                         }() ) ) );
+        throw qwr::QwrException( L"{}: {}\n"
+                                 L"Additional data: {}\n",
+                                 (int)response.status_code(),
+                                 response.reason_phrase(),
+                                 [&]() -> std::wstring {
+                                     try
+                                     {
+                                         const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
+                                         return qwr::unicode::ToWide( responseJson.dump( 2 ) );
+                                     }
+                                     catch ( ... )
+                                     {
+                                         return response.to_string();
+                                     }
+                                 }() );
     }
 
     const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
