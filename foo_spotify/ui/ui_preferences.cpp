@@ -63,12 +63,17 @@ namespace sptf::ui
 
 Preferences::Preferences( preferences_page_callback::ptr callback )
     : callback_( callback )
-    , preferredBitrate_(
+    , preferred_bitrate_(
           config::preferred_bitrate,
           { { config::BitrateSettings::Bitrate96k, 0 },
             { config::BitrateSettings::Bitrate160k, 1 },
             { config::BitrateSettings::Bitrate320k, 2 } } )
-    , ddxOptions_( { qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_ComboBox>( preferredBitrate_, IDC_COMBO_BITRATE ) } )
+    , enable_normalization_( config::enable_normalization )
+    , enable_private_mode_( config::enable_private_mode )
+    , ddxOptions_(
+          { qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_ComboBox>( preferred_bitrate_, IDC_COMBO_BITRATE ),
+            qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enable_normalization_, IDC_CHECK_NORMALIZE ),
+            qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enable_private_mode_, IDC_CHECK_PRIVATE ) } )
 {
 }
 
@@ -101,7 +106,8 @@ void Preferences::apply()
     {
         ddxOpt->Option().Apply();
     }
-    ApplyBitrateChange();
+
+    RefreshLibSpotifySettings();
 
     callback_->on_state_changed();
 }
@@ -231,10 +237,6 @@ void Preferences::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
     if ( ddxOptions_.end() != it )
     {
         ( *it )->Ddx().ReadFromUi();
-    }
-
-    if ( nID == IDC_COMBO_BITRATE )
-    {
         callback_->on_state_changed();
     }
 }
@@ -419,17 +421,12 @@ void Preferences::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStati
     }
 }
 
-void Preferences::ApplyBitrateChange()
+void Preferences::RefreshLibSpotifySettings()
 {
-    const auto bitrate = preferredBitrate_.GetCurrentEnum();
     auto& lsBackend = SpotifyInstance::Get().GetLibSpotify_Backend();
-    lsBackend.ExecSpMutex( [&] {
-        const auto sp = sp_session_preferred_bitrate( lsBackend.GetWhateverSpSession(), static_cast<sp_bitrate>( static_cast<uint8_t>( bitrate ) ) );
-        if ( sp != SP_ERROR_OK )
-        {
-            qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "Failed to change bitrate:\n{}", sp_error_message( sp ) ) );
-        }
-    } );
+    lsBackend.RefreshBitrate();
+    lsBackend.RefreshNormalization();
+    lsBackend.RefreshPrivateMode();
 }
 
 } // namespace sptf::ui

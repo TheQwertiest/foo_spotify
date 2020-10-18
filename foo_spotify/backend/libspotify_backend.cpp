@@ -81,25 +81,25 @@ LibSpotify_Backend::LibSpotify_Backend( AbortManager& abortManager )
 
     SPTF_ASSIGN_CALLBACK( callbacks_, logged_in );
     SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, logged_out );
-    /*
-    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, connection_error )
-    */
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, metadata_updated );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, connection_error );
     SPTF_ASSIGN_CALLBACK( callbacks_, message_to_user );
     SPTF_ASSIGN_CALLBACK( callbacks_, notify_main_thread );
     SPTF_ASSIGN_CALLBACK( callbacks_, music_delivery );
     SPTF_ASSIGN_CALLBACK( callbacks_, play_token_lost );
     SPTF_ASSIGN_CALLBACK( callbacks_, log_message );
     SPTF_ASSIGN_CALLBACK( callbacks_, end_of_track );
-    /*
-    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, streaming_error )
-    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, start_playback )
-    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, stop_playback )
-    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, get_audio_buffer_stats )
-    */
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, streaming_error );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, userinfo_updated );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, start_playback );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, stop_playback );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, get_audio_buffer_stats );
     SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, offline_status_updated );
     SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, offline_error );
     SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, credentials_blob_updated );
     SPTF_ASSIGN_CALLBACK( callbacks_, connectionstate_updated );
+    SPTF_ASSIGN_DUMMY_CALLBACK( callbacks_, scrobble_error );
+    SPTF_ASSIGN_CALLBACK( callbacks_, private_session_mode_changed );
 
 #undef SPTF_ASSIGN_DUMMY_CALLBACK
 #undef SPTF_ASSIGN_CALLBACK
@@ -116,6 +116,9 @@ LibSpotify_Backend::LibSpotify_Backend( AbortManager& abortManager )
     }
 
     StartEventLoopThread();
+
+    RefreshBitrate();
+    RefreshNormalization();
 }
 
 void LibSpotify_Backend::Finalize()
@@ -269,25 +272,6 @@ void LibSpotify_Backend::LogoutAndForget( abort_callback& abort )
     WaitForLoginStatusUpdate( abort );
 }
 
-std::optional<bool> LibSpotify_Backend::WaitForLoginStatusUpdate( abort_callback& abort )
-{
-    const auto abortableScope = abortManager_.GetAbortableScope( [&] { loginCv_.notify_all(); }, abort );
-
-    std::unique_lock lock( loginMutex_ );
-
-    loginCv_.wait( lock, [&] {
-        return ( ( loginStatus_ != LoginStatus::login_in_process
-                   && loginStatus_ != LoginStatus::logout_in_process )
-                 || abort.is_aborting() );
-    } );
-    if ( abort.is_aborting() )
-    {
-        return std::nullopt;
-    }
-
-    return ( loginStatus_ == LoginStatus::logged_in );
-}
-
 std::string LibSpotify_Backend::GetLoggedInUserName()
 {
     {
@@ -307,6 +291,42 @@ std::string LibSpotify_Backend::GetLoggedInUserName()
     }
 
     return userName;
+}
+
+void LibSpotify_Backend::RefreshBitrate()
+{
+    std::lock_guard lock( apiMutex_ );
+    const auto sp = sp_session_preferred_bitrate( pSpSession_, static_cast<sp_bitrate>( static_cast<uint8_t>( config::preferred_bitrate.GetValue() ) ) );
+    if ( sp != SP_ERROR_OK )
+    {
+        qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "sp_session_preferred_bitrate failed:\n{}", sp_error_message( sp ) ) );
+    }
+}
+
+void LibSpotify_Backend::RefreshNormalization()
+{
+    std::lock_guard lock( apiMutex_ );
+    const auto sp = sp_session_set_volume_normalization( pSpSession_, config::enable_normalization );
+    if ( sp != SP_ERROR_OK )
+    {
+        qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "sp_session_set_volume_normalization failed:\n{}", sp_error_message( sp ) ) );
+    }
+}
+
+void LibSpotify_Backend::RefreshPrivateMode()
+{
+    {
+        std::lock_guard lock( loginMutex_ );
+        if ( loginStatus_ != LoginStatus::logged_in )
+        { // private session can be set only in logged in session
+            return;
+        }
+    }
+
+    {
+        std::lock_guard lock( apiMutex_ );
+        RefreshPrivateModeNonBlocking();
+    }
 }
 
 void LibSpotify_Backend::EventLoopThread()
@@ -363,6 +383,34 @@ void LibSpotify_Backend::StopEventLoopThread()
         pWorker_->join();
     }
     pWorker_.reset();
+}
+
+std::optional<bool> LibSpotify_Backend::WaitForLoginStatusUpdate( abort_callback& abort )
+{
+    const auto abortableScope = abortManager_.GetAbortableScope( [&] { loginCv_.notify_all(); }, abort );
+
+    std::unique_lock lock( loginMutex_ );
+
+    loginCv_.wait( lock, [&] {
+        return ( ( loginStatus_ != LoginStatus::login_in_process
+                   && loginStatus_ != LoginStatus::logout_in_process )
+                 || abort.is_aborting() );
+    } );
+    if ( abort.is_aborting() )
+    {
+        return std::nullopt;
+    }
+
+    return ( loginStatus_ == LoginStatus::logged_in );
+}
+
+void LibSpotify_Backend::RefreshPrivateModeNonBlocking()
+{
+    const auto sp = sp_session_set_private_session( pSpSession_, config::enable_private_mode );
+    if ( sp != SP_ERROR_OK )
+    {
+        qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "sp_session_set_private_session failed:\n{}", sp_error_message( sp ) ) );
+    }
 }
 
 void LibSpotify_Backend::AcquireDecoder( void* owner )
@@ -477,6 +525,8 @@ void LibSpotify_Backend::connectionstate_updated()
             loginStatus_ = LoginStatus::logged_in;
         }
         loginCv_.notify_all();
+
+        RefreshPrivateModeNonBlocking();
         break;
     }
     case SP_CONNECTION_STATE_LOGGED_OUT:
@@ -497,6 +547,15 @@ void LibSpotify_Backend::connectionstate_updated()
         break;
     }
     }
+}
+
+void LibSpotify_Backend::private_session_mode_changed( bool is_private )
+{ // in case private mode expired
+    if ( is_private == config::enable_private_mode )
+    {
+        return;
+    }
+    RefreshPrivateModeNonBlocking();
 }
 
 } // namespace sptf

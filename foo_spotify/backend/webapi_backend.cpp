@@ -200,10 +200,10 @@ WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& 
 std::vector<std::unique_ptr<const WebApi_Track>>
 WebApi_Backend::GetTopTracksForArtist( const std::string& artistId, abort_callback& abort )
 {
-    // TODO: add check for permission and relogin requirement notice
-
     const auto countryOpt = GetUser( abort )->country;
-    qwr::QwrException::ExpectTrue( countryOpt.has_value(), "Adding artist top tracks requires `user-read-private` permission" );
+    qwr::QwrException::ExpectTrue( countryOpt.has_value(),
+                                   "Adding artist top tracks requires `user-read-private` permission.\n"
+                                   "Re-login to update your permission scope." );
 
     web::uri_builder builder;
     builder.append_path( L"artists" );

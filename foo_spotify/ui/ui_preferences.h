@@ -5,6 +5,7 @@
 #include <resource.h>
 
 #include <qwr/fb2k_config_ui_option.h>
+#include <qwr/macros.h>
 #include <qwr/ui_ddx_option.h>
 
 #include <thread>
@@ -49,6 +50,8 @@ protected:
         MSG_WM_DESTROY( OnDestroy )
         MSG_WM_CTLCOLORSTATIC( OnCtlColorStatic )
         COMMAND_HANDLER_EX( IDC_COMBO_BITRATE, CBN_SELCHANGE, OnDdxChange )
+        COMMAND_HANDLER_EX( IDC_CHECK_NORMALIZE, BN_CLICKED, OnDdxChange )
+        COMMAND_HANDLER_EX( IDC_CHECK_PRIVATE, BN_CLICKED, OnDdxChange )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_LIBSPOTIFY, BN_CLICKED, OnLibSpotifyLoginClick )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_WEBAPI, BN_CLICKED, OnWebApiLoginClick )
         MESSAGE_HANDLER( kOnWebApiLoginResponse, OnWebApiLoginResponse )
@@ -73,13 +76,23 @@ private:
     void UpdateWebApiUi();
     void UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn );
 
-    void ApplyBitrateChange();
+    void RefreshLibSpotifySettings();
 
 private:
     preferences_page_callback::ptr callback_;
 
-    qwr::ui::UiOption<decltype( config::preferred_bitrate )> preferredBitrate_;
-    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 1> ddxOptions_;
+#define SPTF_DEFINE_UI_OPTION( name ) \
+    qwr::ui::UiOption<decltype( config::name )> name##_;
+
+#define SPTF_DEFINE_UI_OPTIONS( ... ) \
+    QWR_EXPAND( QWR_PASTE( SPTF_DEFINE_UI_OPTION, __VA_ARGS__ ) )
+
+    SPTF_DEFINE_UI_OPTIONS( preferred_bitrate, enable_normalization, enable_private_mode )
+
+#undef SPTF_DEFINE_OPTIONS
+#undef SPTF_DEFINE_OPTION
+
+    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 3> ddxOptions_;
 
     CComboBox comboBitrate_;
 

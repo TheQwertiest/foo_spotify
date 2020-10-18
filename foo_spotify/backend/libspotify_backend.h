@@ -2,10 +2,12 @@
 
 #include <backend/audio_buffer.h>
 #include <backend/libspotify_backend_user.h>
+#include <fb2k/config.h>
 
 #include <libspotify/api.h>
 
 #include <condition_variable>
+#include <optional>
 #include <unordered_set>
 
 namespace sptf
@@ -47,12 +49,18 @@ public:
 
     std::string GetLoggedInUserName();
 
+    void RefreshBitrate();
+    void RefreshNormalization();
+    void RefreshPrivateMode();
+
 private:
     void EventLoopThread();
     void StartEventLoopThread();
     void StopEventLoopThread();
 
     std::optional<bool> WaitForLoginStatusUpdate( abort_callback& abort );
+
+    void RefreshPrivateModeNonBlocking();
 
     // callbacks
 
@@ -64,6 +72,7 @@ private:
     void end_of_track();
     void play_token_lost();
     void connectionstate_updated();
+    void private_session_mode_changed( bool is_private );
 
 private:
     AbortManager& abortManager_;
