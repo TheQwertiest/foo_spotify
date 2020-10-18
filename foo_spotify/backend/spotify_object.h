@@ -27,7 +27,10 @@ class SpotifyFilteredTrack
 public:
     /// @throw qwr::QwrException
     SpotifyFilteredTrack( std::string_view id );
+    /// @throw qwr::QwrException
+    static SpotifyFilteredTrack Parse( std::string_view input );
 
+    const std::string& Id() const;
     std::string ToUri() const;
     std::string ToUrl() const;
     std::string ToSchema() const;

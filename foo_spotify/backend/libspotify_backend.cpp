@@ -52,9 +52,9 @@ LibSpotify_Backend::LibSpotify_Backend( AbortManager& abortManager )
     config_.userdata = this;
     config_.callbacks = &callbacks_;
 
-    const auto proxyUrl = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy );
-    const auto proxyUsername = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_username );
-    const auto proxyPassword = qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_password );
+    const auto proxyUrl = sptf::config::advanced::network_proxy.GetValue();
+    const auto proxyUsername = sptf::config::advanced::network_proxy_username.GetValue();
+    const auto proxyPassword = sptf::config::advanced::network_proxy_password.GetValue();
     if ( !proxyUrl.empty() )
     {
         config_.proxy = proxyUrl.c_str();

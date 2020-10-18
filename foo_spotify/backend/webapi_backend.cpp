@@ -3,7 +3,7 @@
 #include "webapi_backend.h"
 
 #include <backend/webapi_auth.h>
-#include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_media_objects.h>
 #include <backend/webapi_objects/webapi_user.h>
 #include <fb2k/advanced_config.h>
 #include <utils/abort_manager.h>
@@ -36,6 +36,7 @@ WebApi_Backend::WebApi_Backend( AbortManager& abortManager )
     , artistImageCache_( "artists" )
     , pAuth_( std::make_unique<WebApiAuthorizer>( GetClientConfig(), abortManager ) )
 {
+    shouldLogWebApi_ = config::advanced::logging_webapi;
 }
 
 WebApi_Backend::~WebApi_Backend()
@@ -53,7 +54,7 @@ WebApiAuthorizer& WebApi_Backend::GetAuthorizer()
     return *pAuth_;
 }
 
-std::unique_ptr<const WebApi_User> WebApi_Backend::GetUser( abort_callback& abort )
+std::unique_ptr<const sptf::WebApi_User> WebApi_Backend::GetUser( abort_callback& abort )
 {
     web::uri_builder builder;
     builder.append_path( L"me" );
@@ -63,23 +64,37 @@ std::unique_ptr<const WebApi_User> WebApi_Backend::GetUser( abort_callback& abor
 }
 
 std::unique_ptr<const sptf::WebApi_Track>
-WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort )
+WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort, bool useRelink )
 {
+    // don't want to cache relinked tracks
+
     if ( auto trackOpt = trackCache_.GetObjectFromCache( trackId );
-         trackOpt )
+         !useRelink && trackOpt )
     {
         return std::unique_ptr<sptf::WebApi_Track>( std::move( *trackOpt ) );
     }
     else
     {
+
         web::uri_builder builder;
         builder.append_path( L"tracks" );
         builder.append_path( qwr::unicode::ToWide( trackId ) );
+        if ( useRelink )
+        {
+            if ( const auto countryOpt = GetUser( abort )->country;
+                 countryOpt )
+            {
+                builder.append_query( L"market", qwr::unicode::ToWide( *countryOpt ) );
+            }
+        }
 
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         auto ret = responseJson.get<std::unique_ptr<WebApi_Track>>();
 
-        trackCache_.CacheObject( *ret );
+        if ( !useRelink )
+        {
+            trackCache_.CacheObject( *ret );
+        }
         return std::unique_ptr<sptf::WebApi_Track>( std::move( ret ) );
     }
 }
@@ -252,9 +267,9 @@ fs::path WebApi_Backend::GetArtistImage( const std::string& artistId, const std:
 
 web::http::client::http_client_config WebApi_Backend::GetClientConfig()
 {
-    const auto proxyUrl = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy ) );
-    const auto proxyUsername = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_username ) );
-    const auto proxyPassword = qwr::unicode::ToWide( qwr::fb2k::config::GetValue( sptf::config::advanced::network_proxy_password ) );
+    const auto proxyUrl = qwr::unicode::ToWide( sptf::config::advanced::network_proxy.GetValue() );
+    const auto proxyUsername = qwr::unicode::ToWide( sptf::config::advanced::network_proxy_username.GetValue() );
+    const auto proxyPassword = qwr::unicode::ToWide( sptf::config::advanced::network_proxy_password.GetValue() );
 
     web::http::client::http_client_config config;
     if ( !proxyUrl.empty() )
@@ -273,6 +288,11 @@ web::http::client::http_client_config WebApi_Backend::GetClientConfig()
 
 nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abort_callback& abort )
 {
+    if ( shouldLogWebApi_ )
+    {
+        FB2K_console_formatter() << qwr::unicode::ToU8( requestUri.to_string() );
+    }
+
     web::http::http_request req( web::http::methods::GET );
     req.headers().add( L"Authorization", L"Bearer " + pAuth_->GetAccessToken( abort ) );
     req.headers().add( L"Accept", L"application/json" );
@@ -304,6 +324,10 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     }
 
     const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
+    if ( shouldLogWebApi_ )
+    {
+        FB2K_console_formatter() << responseJson.dump( 2 );
+    }
     qwr::QwrException::ExpectTrue( responseJson.is_object(),
                                    L"Malformed track data response response: json is not an object" );
 

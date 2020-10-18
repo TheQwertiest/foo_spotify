@@ -3,7 +3,7 @@
 #include <backend/spotify_instance.h>
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
-#include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_media_objects.h>
 
 using namespace sptf;
 
@@ -89,11 +89,10 @@ bool AlbumArtExtractorSpotify::is_our_path( const char* p_path, const char* p_ex
 
 album_art_extractor_instance_ptr AlbumArtExtractorSpotify::open( file_ptr p_filehint, const char* p_path, abort_callback& p_abort )
 {
-    SpotifyObject object( p_path );
-    assert( object.type == "track" );
+    const auto spotifyObject = SpotifyFilteredTrack::Parse( p_path );
 
     auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
-    auto track = waBackend.GetTrack( object.id, p_abort );
+    auto track = waBackend.GetTrack( spotifyObject.Id(), p_abort );
     auto artist = waBackend.GetArtist( track->artists[0]->id, p_abort );
     if ( track->album->images.empty() && artist->images.empty() )
     {

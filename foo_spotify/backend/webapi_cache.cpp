@@ -3,7 +3,9 @@
 #include "webapi_cache.h"
 
 #include <backend/spotify_instance.h>
+#include <backend/webapi_objects/webapi_user.h>
 #include <utils/abort_manager.h>
+#include <utils/json_std_extenders.h>
 
 #include <qwr/winapi_error_helpers.h>
 
@@ -148,7 +150,11 @@ fs::path WebApi_ImageCache::GetImage( const std::string& id, const std::string& 
 
         DownloadStatus ds( abort );
         auto hr = URLDownloadToFile( nullptr, url_w.c_str(), imagePath.c_str(), 0, &ds );
-        qwr::error::CheckHR( hr, "URLDownloadToFile" );
+        if ( FAILED( hr ) )
+        {
+            fs::remove( imagePath ); // in case download was aborted midway
+            qwr::error::CheckHR( hr, "URLDownloadToFile" );
+        }
     }
     assert( fs::exists( imagePath ) );
     return imagePath;

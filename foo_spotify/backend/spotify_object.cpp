@@ -6,16 +6,6 @@
 
 using namespace std::literals::string_view_literals;
 
-namespace
-{
-
-bool IsValidType( std::string_view type )
-{
-    return type == "track"sv || type == "album"sv || type == "playlist"sv;
-}
-
-} // namespace
-
 namespace sptf
 {
 
@@ -50,8 +40,7 @@ SpotifyObject::SpotifyObject( std::string_view input )
         qwr::QwrException::ExpectTrue( ret.size() == 2, "Invalid URL" );
 
         const auto localType = ret[0];
-        qwr::QwrException::ExpectTrue( IsValidType( localType ), "Unsupported Spotify object: {}", localType );
-        type = std::string( localType.cbegin(), localType.cend() );
+        type = std::string( localType.data(), localType.size() );
 
         const auto localId = [localId = ret[1]] {
             const auto pos = localId.find( '?' );
@@ -72,8 +61,7 @@ SpotifyObject::SpotifyObject( std::string_view input )
         qwr::QwrException::ExpectTrue( ret[0] == "spotify"sv, "Invalid URI" );
 
         const auto localType = ret[1];
-        qwr::QwrException::ExpectTrue( IsValidType( localType ), "Unsupported Spotify object: {}", localType );
-        type = std::string( localType.cbegin(), localType.cend() );
+        type = std::string( localType.data(), localType.size() );
 
         const auto localId = ret[2];
         qwr::QwrException::ExpectTrue( !localId.empty(), "Invalid Spotify object id: {}", localId );
@@ -85,7 +73,6 @@ SpotifyObject::SpotifyObject( std::string_view type, std::string_view id )
     : type( type )
     , id( id )
 {
-    qwr::QwrException::ExpectTrue( IsValidType( this->type ), "Unsupported Spotify object: {}", this->type );
 }
 
 std::string SpotifyObject::ToUri() const
@@ -106,6 +93,24 @@ std::string SpotifyObject::ToSchema() const
 SpotifyFilteredTrack::SpotifyFilteredTrack( std::string_view id )
     : object_( "track", id )
 {
+}
+
+SpotifyFilteredTrack SpotifyFilteredTrack::Parse( std::string_view input )
+{
+    if ( !IsValid( input, false ) )
+    {
+        throw qwr::QwrException( "Unsupported input format: {}", input );
+    }
+
+    SpotifyObject so( input );
+    assert( so.type == "track" );
+
+    return SpotifyFilteredTrack( so.id );
+}
+
+const std::string& SpotifyFilteredTrack::Id() const
+{
+    return object_.id;
 }
 
 std::string SpotifyFilteredTrack::ToUri() const

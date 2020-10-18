@@ -36,6 +36,7 @@
 #pragma comment( lib, "httpapi.lib" )
 
 // TODO: add abortable to cts
+// TODO: clean up mutex handling - it's a mess here
 
 namespace fs = std::filesystem;
 
@@ -260,7 +261,7 @@ const std::wstring WebApiAuthorizer::GetAccessToken( abort_callback& abort )
 
     if ( std::chrono::system_clock::now() - pAuthData_->expiresIn > std::chrono::minutes( 1 ) )
     {
-        AuthenticateWithRefreshToken( abort );
+        AuthenticateWithRefreshToken_NonBlocking( abort );
     }
 
     assert( !pAuthData_->accessToken.empty() );
@@ -325,7 +326,13 @@ void WebApiAuthorizer::AuthenticateClean_Cleanup()
 
 void WebApiAuthorizer::AuthenticateWithRefreshToken( abort_callback& abort )
 {
-    assert( HasRefreshToken() );
+    std::lock_guard lock( accessTokenMutex_ );
+    AuthenticateWithRefreshToken_NonBlocking( abort );
+}
+
+void WebApiAuthorizer::AuthenticateWithRefreshToken_NonBlocking( abort_callback& abort )
+{
+    assert( pAuthData_ );
 
     web::uri_builder builder;
     builder.append_query( L"grant_type", L"refresh_token" );
@@ -347,8 +354,6 @@ void WebApiAuthorizer::AuthenticateWithRefreshToken( abort_callback& abort )
 pplx::task<void> WebApiAuthorizer::CompleteAuthentication( const std::wstring& responseUrl )
 {
     // TODO: final_action
-    console::info( "foo_scrobble: Requesting session key" );
-
     web::uri uri( responseUrl );
     // TODO: check redirectUri?
 
@@ -497,15 +502,13 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
                                    L"Malformed authentication response: invalid `token_type`: {}",
                                    responseJson.at( L"token_type" ).as_string() );
 
-    pAuthData_ = std::make_unique<AuthData>();
-    pAuthData_->accessToken = responseJson.at( L"access_token" ).as_string();
-    pAuthData_->refreshToken = responseJson.at( L"refresh_token" ).as_string();
-    pAuthData_->expiresIn = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
+    auto pAuthData = std::make_unique<AuthData>();
+    pAuthData->accessToken = responseJson.at( L"access_token" ).as_string();
+    pAuthData->refreshToken = responseJson.at( L"refresh_token" ).as_string();
+    pAuthData->expiresIn = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
 
     auto scopesSplit = qwr::string::Split<wchar_t>( responseJson.at( L"scope" ).as_string(), L' ' );
-    pAuthData_->scopes = WebApiAuthScopes( scopesSplit );
-
-    nlohmann::json jsonToWrite = pAuthData_;
+    pAuthData->scopes = WebApiAuthScopes( scopesSplit );
 
     const auto settingsPath = path::WebApiSettings();
     if ( !fs::exists( settingsPath ) )
@@ -513,7 +516,9 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
         fs::create_directories( settingsPath );
     }
     // not using component config because it's not saved immediately
-    qwr::file::WriteFile( settingsPath / "auth.json", jsonToWrite.dump( 2 ) );
+    qwr::file::WriteFile( settingsPath / "auth.json", nlohmann::json( pAuthData ).dump( 2 ) );
+
+    pAuthData_ = std::move( pAuthData );
 }
 
 } // namespace sptf

@@ -5,7 +5,7 @@
 #include <backend/spotify_instance.h>
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
-#include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_media_objects.h>
 #include <fb2k/config.h>
 #include <fb2k/file_info_filler.h>
 
@@ -99,6 +99,7 @@ private:
     std::optional<t_input_open_reason> openedReason_;
 
     wrapper::Ptr<sp_track> track_;
+    std::string trackId_;
     std::unordered_multimap<std::string, std::string> trackMeta_;
 
     bool isFirstBlock_ = false;
@@ -106,6 +107,48 @@ private:
     int sampleRate_{};
     int bitRate_{};
 };
+} // namespace
+
+namespace
+{
+
+std::string GetPlaybackErrorMessage( sp_error sp, const std::string& trackId, abort_callback& p_abort )
+{
+    if ( sp == SP_ERROR_TRACK_NOT_PLAYABLE )
+    {
+        try
+        {
+            auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
+            const auto track = waBackend.GetTrack( trackId, p_abort, true );
+            if ( track->restrictions )
+            {
+                const auto& reason = track->restrictions.value()->reason;
+                if ( reason == "market"sv )
+                {
+                    return "track is not accessible in your country";
+                }
+                else if ( reason == "product"sv )
+                {
+                    return "track is not accessible for your subscription type";
+                }
+                else if ( reason == "explicit"sv )
+                {
+                    return "track is explicit and your account is set to not play explicit content";
+                }
+                else
+                {
+                    return reason;
+                }
+            }
+        }
+        catch ( const std::exception& )
+        {
+        }
+    }
+
+    return sp_error_message( sp );
+}
+
 } // namespace
 
 namespace
@@ -159,8 +202,9 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
 
     auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
 
-    SpotifyObject so( p_path );
-    const auto track = waBackend.GetTrack( so.id, p_abort );
+    const auto spotifyObject = SpotifyFilteredTrack::Parse( p_path );
+    trackId_ = spotifyObject.Id();
+    const auto track = waBackend.GetTrack( trackId_, p_abort );
     trackMeta_ = waBackend.GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>>( &track, 1 ) )[0];
 
     if ( p_reason == input_open_info_read )
@@ -173,7 +217,7 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
     auto pSession = lsBackend.GetInitializedSpSession( p_abort );
 
     lsBackend.ExecSpMutex( [&] {
-        wrapper::Ptr<sp_link> link( sp_link_create_from_string( so.ToUri().c_str() ) );
+        wrapper::Ptr<sp_link> link( sp_link_create_from_string( spotifyObject.ToUri().c_str() ) );
         if ( !link )
         {
             throw exception_io_data( "Couldn't parse url" );
@@ -293,7 +337,7 @@ void InputSpotify::decode_initialize( t_int32 subsong, unsigned p_flags, abort_c
         const auto sp = sp_session_player_load( pSession, track_ );
         if ( sp != SP_ERROR_OK )
         {
-            throw qwr::QwrException( fmt::format( "sp_session_player_load failed: {}", sp_error_message( sp ) ) );
+            throw qwr::QwrException( fmt::format( "sp_session_player_load failed: {}", GetPlaybackErrorMessage( sp, trackId_, p_abort ) ) );
         }
 
         sp_session_player_play( pSession, true );

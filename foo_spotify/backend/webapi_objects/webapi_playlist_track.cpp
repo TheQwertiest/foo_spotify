@@ -2,7 +2,7 @@
 
 #include "webapi_playlist_track.h"
 
-#include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_media_objects.h>
 #include <utils/json_std_extenders.h>
 
 namespace sptf

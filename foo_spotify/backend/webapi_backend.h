@@ -30,11 +30,10 @@ public:
 
     WebApiAuthorizer& GetAuthorizer();
 
-    std::unique_ptr<const WebApi_User>
-    GetUser( abort_callback& abort );
+    std::unique_ptr<const sptf::WebApi_User> GetUser( abort_callback& abort );
 
     std::unique_ptr<const WebApi_Track>
-    GetTrack( const std::string& trackId, abort_callback& abort );
+    GetTrack( const std::string& trackId, abort_callback& abort, bool useRelink = false );
 
     std::tuple<
         std::vector<std::unique_ptr<const WebApi_Track>>,
@@ -59,6 +58,8 @@ private:
 
 private:
     AbortManager& abortManager_;
+
+    bool shouldLogWebApi_ = false;
 
     pplx::cancellation_token_source cts_;
     std::unique_ptr<WebApiAuthorizer> pAuth_;

@@ -113,7 +113,9 @@
     <ClCompile Include="backend\webapi_objects\webapi_artist.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_image.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_restriction.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_track.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_track_link.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_user.cpp" />
     <ClCompile Include="component_paths.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -149,10 +151,12 @@
     <ClInclude Include="backend\webapi_objects\webapi_image.h" />
     <ClInclude Include="backend\webapi_objects\webapi_album.h" />
     <ClInclude Include="backend\webapi_objects\webapi_artist.h" />
-    <ClInclude Include="backend\webapi_objects\webapi_objects_all.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_media_objects.h" />
     <ClInclude Include="backend\webapi_objects\webapi_playlist_track.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_restriction.h" />
     <ClInclude Include="backend\webapi_objects\webapi_track.h" />
     <ClInclude Include="backend\webapi_cache.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_track_link.h" />
     <ClInclude Include="backend\webapi_objects\webapi_user.h" />
     <ClInclude Include="component_defines.h" />
     <ClInclude Include="component_guids.h" />

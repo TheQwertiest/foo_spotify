@@ -3,7 +3,7 @@
 #include <backend/spotify_instance.h>
 #include <backend/spotify_object.h>
 #include <backend/webapi_backend.h>
-#include <backend/webapi_objects/webapi_objects_all.h>
+#include <backend/webapi_objects/webapi_media_objects.h>
 #include <fb2k/file_info_filler.h>
 
 #include <qwr/error_popup.h>
@@ -90,22 +90,73 @@ public:
 namespace
 {
 
-void PrintSkippedTracks( nonstd::span<const std::unique_ptr<const WebApi_LocalTrack>> tracks )
+struct SkippedTrack
 {
-    const auto trackIds =
-        ranges::views::transform( tracks,
-                                  []( const auto& pTrack ) -> std::string_view {
-                                      return ( pTrack->name ? *pTrack->name : pTrack->id );
-                                  } )
-        | ranges::to_vector;
 
-    qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME,
-                               fmt::format(
-                                   "Failed to add the following tracks:\n"
-                                   "  {}\n"
-                                   "Reason:\n"
-                                   "  local tracks are not supported",
-                                   fmt::join( trackIds, "\n  " ) ) );
+    std::string name;
+    std::string reason;
+};
+
+std::vector<SkippedTrack>
+TransformToSkippedTracks( nonstd::span<const std::unique_ptr<const WebApi_LocalTrack>> tracks )
+{
+    return ranges::views::transform( tracks,
+                                     [&]( const auto& pTrack ) -> SkippedTrack {
+                                         return { ( pTrack->name ? *pTrack->name : pTrack->id ), "local track" };
+                                     } )
+           | ranges::to_vector;
+}
+
+std::tuple<std::vector<std::unique_ptr<const sptf::WebApi_Track>>, std::vector<SkippedTrack>>
+GetTracks( const SpotifyObject spotifyObject, abort_callback& p_abort )
+{
+    auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
+
+    if ( spotifyObject.type == "album" )
+    {
+        return { waBackend.GetTracksFromAlbum( spotifyObject.id, p_abort ), std::vector<SkippedTrack>{} };
+    }
+    else if ( spotifyObject.type == "playlist" )
+    {
+        auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
+        // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
+        return { std::move( tracks ), TransformToSkippedTracks( localTracks ) };
+    }
+    else if ( spotifyObject.type == "track" )
+    {
+        std::vector<std::unique_ptr<const WebApi_Track>> tmp;
+        tmp.emplace_back( waBackend.GetTrack( spotifyObject.id, p_abort ) );
+        return { std::move( tmp ), std::vector<SkippedTrack>{} };
+    }
+    else if ( spotifyObject.type == "local" )
+    {
+        std::vector<SkippedTrack> tmp;
+        tmp.emplace_back( SkippedTrack{ spotifyObject.id, "local track" } );
+        return { std::vector<std::unique_ptr<const sptf::WebApi_Track>>{}, tmp };
+    }
+    else
+    {
+        throw qwr::QwrException( "Unexpected Spotify object type: {}", spotifyObject.type );
+    }
+}
+
+void ReportSkippedTracks( nonstd::span<const SkippedTrack> skippedTracks )
+{
+    if ( skippedTracks.empty() )
+    {
+        return;
+    }
+
+    const auto formatedSkippedTracks = ranges::views::transform( skippedTracks,
+                                                                 [&]( const auto& track ) -> std::string {
+                                                                     return fmt::format( "{}: {}", track.name, track.reason );
+                                                                 } )
+                                       | ranges::to_vector;
+    const auto msg = fmt::format( "Failed to add the following tracks:\n"
+                                  "  {}\n",
+                                  fmt::join( formatedSkippedTracks, "\n  " ) );
+
+    qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, msg );
 }
 
 } // namespace
@@ -115,7 +166,6 @@ namespace
 
 void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>& p_file, playlist_loader_callback::ptr p_callback, abort_callback& p_abort )
 {
-
     const auto spotifyObject = [&] {
         try
         {
@@ -131,29 +181,8 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
 
     auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
 
-    const auto tracks = [&] {
-        if ( spotifyObject.type == "album" )
-        {
-            return waBackend.GetTracksFromAlbum( spotifyObject.id, p_abort );
-        }
-        else if ( spotifyObject.type == "playlist" )
-        {
-            auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
-            if ( !localTracks.empty() )
-            {
-                PrintSkippedTracks( localTracks );
-            }
-
-            // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
-            return std::move( tracks );
-        }
-        else
-        {
-            std::vector<std::unique_ptr<const WebApi_Track>> tmp;
-            tmp.emplace_back( waBackend.GetTrack( spotifyObject.id, p_abort ) );
-            return tmp;
-        }
-    }();
+    auto [tracks, skippedTracks] = GetTracks( spotifyObject, p_abort );
+    std::vector<std::string> relinkedTracks;
 
     const auto tracksMeta = waBackend.GetMetaForTracks( tracks );
     for ( const auto& [track, trackMeta]: ranges::views::zip( tracks, tracksMeta ) )
@@ -165,6 +194,8 @@ void PlaylistLoaderSpotify::open( const char* p_path, const service_ptr_t<file>&
         p_callback->handle_create( f_handle, make_playable_location( SpotifyFilteredTrack( track->id ).ToSchema().c_str(), 0 ) );
         p_callback->on_entry_info( f_handle, playlist_loader_callback::entry_user_requested, filestats_invalid, f_info, false );
     }
+
+    ReportSkippedTracks( skippedTracks );
 }
 
 void PlaylistLoaderSpotify::write( const char* p_path, const service_ptr_t<file>& p_file, metadb_handle_list_cref p_data, abort_callback& p_abort )
