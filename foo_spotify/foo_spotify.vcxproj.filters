@@ -91,6 +91,7 @@
     <ClCompile Include="backend\webapi_objects\webapi_track_link.cpp">
       <Filter>backend\webapi_objects</Filter>
     </ClCompile>
+    <ClCompile Include="utils\sleeper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />
@@ -196,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="backend\webapi_objects\webapi_track_link.h">
       <Filter>backend\webapi_objects</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\sleeper.h">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

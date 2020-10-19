@@ -8,6 +8,7 @@
 #include <fb2k/advanced_config.h>
 #include <utils/abort_manager.h>
 #include <utils/json_std_extenders.h>
+#include <utils/sleeper.h>
 
 #include <component_urls.h>
 
@@ -327,7 +328,33 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
     const auto abortableScope = abortManager_.GetAbortableScope( [&localCts] { localCts.cancel(); }, abort );
 
-    const auto response = client_.request( req, localCts.get_token() ).get();
+    const auto response = [&] {
+        web::http::http_response response;
+        for ( size_t i = 0; i < 3; ++i )
+        {
+            response = client_.request( req, localCts.get_token() ).get();
+            if ( response.status_code() != 429 )
+            {
+                return response;
+            }
+
+            const auto it = response.headers().find( L"Retry-After" );
+            qwr::QwrException::ExpectTrue( it != response.headers().end(), "Request failed with 429 error, but does not contain a `Retry-After` header" );
+
+            const auto& [_, retryHeader] = *it;
+            const auto retryInMsOpt = qwr::string::GetNumber<uint32_t>( qwr::unicode::ToU8( retryHeader ) );
+            qwr::QwrException::ExpectTrue( retryInMsOpt.has_value(), "Request failed with 429 error, but does not contain a valid number in `Retry-After` header" );
+
+            const auto retryIn = std::chrono::milliseconds( *retryInMsOpt ) + std::chrono::seconds( 1 );
+            FB2K_console_formatter() << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
+            if ( !SleepFor( retryIn, abort ) )
+            {
+                break;
+            }
+        }
+        return response;
+    }();
+
     if ( response.status_code() != 200 )
     {
         throw qwr::QwrException( L"{}: {}\n"

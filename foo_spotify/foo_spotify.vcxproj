@@ -136,6 +136,7 @@
     <ClCompile Include="ui\ui_preferences.cpp" />
     <ClCompile Include="utils\abort_manager.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
+    <ClCompile Include="utils\sleeper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="backend\audio_buffer.h" />
@@ -176,6 +177,7 @@
     <ClInclude Include="utils\json_macro_fix.h" />
     <ClInclude Include="utils\json_std_extenders.h" />
     <ClInclude Include="utils\secure_vector.h" />
+    <ClInclude Include="utils\sleeper.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\submodules\fb2k_utils\src\fb2k_utils.vcxproj">
