@@ -14,6 +14,8 @@ enum class BitrateSettings : uint8_t
 
 extern qwr::fb2k::ConfigBool_MT enable_normalization;
 extern qwr::fb2k::ConfigBool_MT enable_private_mode;
+extern qwr::fb2k::ConfigUint8_MT libspotify_cache_size_in_percent;
+extern qwr::fb2k::ConfigUint32_MT libspotify_cache_size_in_mb;
 extern qwr::fb2k::ConfigUint8Enum_MT<BitrateSettings> preferred_bitrate;
 extern qwr::fb2k::ConfigString_MT webapi_auth_scopes;
 

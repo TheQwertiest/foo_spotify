@@ -133,7 +133,9 @@
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
     <ClCompile Include="ui\ui_not_auth.cpp" />
-    <ClCompile Include="ui\ui_preferences.cpp" />
+    <ClCompile Include="ui\ui_pref_tab_auth.cpp" />
+    <ClCompile Include="ui\ui_pref_tab_manager.cpp" />
+    <ClCompile Include="ui\ui_pref_tab_playback.cpp" />
     <ClCompile Include="utils\abort_manager.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
     <ClCompile Include="utils\sleeper.cpp" />
@@ -169,8 +171,11 @@
     <ClInclude Include="fb2k\playback.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="ui\ui_ipref_tab.h" />
     <ClInclude Include="ui\ui_not_auth.h" />
-    <ClInclude Include="ui\ui_preferences.h" />
+    <ClInclude Include="ui\ui_pref_tab_auth.h" />
+    <ClInclude Include="ui\ui_pref_tab_manager.h" />
+    <ClInclude Include="ui\ui_pref_tab_playback.h" />
     <ClInclude Include="utils\abort_manager.h" />
     <ClInclude Include="utils\async_mutex.hpp" />
     <ClInclude Include="utils\cred_prompt.h" />

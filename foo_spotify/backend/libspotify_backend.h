@@ -52,6 +52,7 @@ public:
     void RefreshBitrate();
     void RefreshNormalization();
     void RefreshPrivateMode();
+    void RefreshCacheSize();
 
 private:
     void EventLoopThread();

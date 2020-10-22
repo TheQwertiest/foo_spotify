@@ -16,6 +16,7 @@
 #include <qwr/error_popup.h>
 #include <qwr/fb2k_adv_config.h>
 #include <qwr/thread_helpers.h>
+#include <qwr/winapi_error_helpers.h>
 
 #include <filesystem>
 #include <fstream>
@@ -119,6 +120,7 @@ LibSpotify_Backend::LibSpotify_Backend( AbortManager& abortManager )
 
     RefreshBitrate();
     RefreshNormalization();
+    RefreshCacheSize();
 }
 
 void LibSpotify_Backend::Finalize()
@@ -326,6 +328,53 @@ void LibSpotify_Backend::RefreshPrivateMode()
     {
         std::lock_guard lock( apiMutex_ );
         RefreshPrivateModeNonBlocking();
+    }
+}
+
+void LibSpotify_Backend::RefreshCacheSize()
+{
+    const auto sizeInMb = config::libspotify_cache_size_in_mb.GetValue();
+    const auto sizeInPercent = config::libspotify_cache_size_in_percent.GetValue();
+
+    const auto cacheSize = [sizeInMb, sizeInPercent]() -> uint32_t {
+        if ( !sizeInMb && ( sizeInPercent == 10 || !sizeInPercent ) )
+        { // 0 - default LibSpotify behaviour
+            return 0;
+        }
+
+        uint64_t dummy1;
+        uint64_t dummy2;
+        uint64_t freeBytes;
+        auto bRet = GetDiskFreeSpaceEx( L"C:",
+                                        (PULARGE_INTEGER)&dummy1,
+                                        (PULARGE_INTEGER)&dummy2,
+                                        (PULARGE_INTEGER)&freeBytes );
+        qwr::error::CheckWinApi( bRet, "GetDiskFreeSpaceEx" );
+        const auto freeMb = ( uint32_t )( freeBytes / ( 1024 * 1024 ) );
+
+        if ( !sizeInPercent )
+        {
+            return std::min( sizeInMb, freeMb );
+        }
+        else
+        {
+            const auto freeSpacePercented = ( uint32_t )( freeMb * ( 1.0 / sizeInPercent ) );
+            if ( sizeInMb )
+            {
+                return std::min( sizeInMb, freeSpacePercented );
+            }
+            else
+            {
+                return freeSpacePercented;
+            }
+        }
+    }();
+
+    std::lock_guard lock( apiMutex_ );
+    const auto sp = sp_session_set_cache_size( pSpSession_, cacheSize );
+    if ( sp != SP_ERROR_OK )
+    {
+        qwr::ReportErrorWithPopup( SPTF_UNDERSCORE_NAME, fmt::format( "sp_session_set_cache_size failed:\n{}", sp_error_message( sp ) ) );
     }
 }
 

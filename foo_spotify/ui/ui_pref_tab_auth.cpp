@@ -1,6 +1,6 @@
 #include <stdafx.h>
 
-#include "ui_preferences.h"
+#include "ui_pref_tab_auth.h"
 
 #include <backend/libspotify_backend.h>
 #include <backend/spotify_instance.h>
@@ -9,6 +9,7 @@
 #include <backend/webapi_backend.h>
 #include <backend/webapi_objects/webapi_user.h>
 #include <fb2k/config.h>
+#include <ui/ui_pref_tab_manager.h>
 
 #include <component_urls.h>
 
@@ -16,68 +17,16 @@
 #include <qwr/error_popup.h>
 #include <qwr/string_helpers.h>
 
-namespace
-{
-
-using namespace sptf;
-
-class preferences_page_impl
-    : public preferences_page_v3
-{
-public:
-    const char* get_name() override
-    {
-        return SPTF_NAME;
-    }
-
-    GUID get_guid() override
-    {
-        return guid::preferences;
-    }
-
-    GUID get_parent_guid() override
-    {
-        return preferences_page::guid_tools;
-    }
-
-    bool get_help_url( pfc::string_base& p_out ) override
-    {
-        p_out << qwr::unicode::ToU8( std::wstring( url::homepage ) );
-        return true;
-    }
-
-    preferences_page_instance::ptr instantiate( HWND parent, preferences_page_callback::ptr callback ) override
-    {
-        auto p = ::fb2k::service_new<ui::Preferences>( callback );
-        p->Create( parent );
-        return p;
-    }
-};
-
-preferences_page_factory_t<preferences_page_impl> g_pref;
-
-} // namespace
-
 namespace sptf::ui
 {
 
-Preferences::Preferences( preferences_page_callback::ptr callback )
-    : callback_( callback )
-    , preferred_bitrate_(
-          config::preferred_bitrate,
-          { { config::BitrateSettings::Bitrate96k, 0 },
-            { config::BitrateSettings::Bitrate160k, 1 },
-            { config::BitrateSettings::Bitrate320k, 2 } } )
-    , enable_normalization_( config::enable_normalization )
-    , enable_private_mode_( config::enable_private_mode )
-    , ddxOptions_(
-          { qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_ComboBox>( preferred_bitrate_, IDC_COMBO_BITRATE ),
-            qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enable_normalization_, IDC_CHECK_NORMALIZE ),
-            qwr::ui::CreateUiDdxOption<qwr::ui::UiDdx_CheckBox>( enable_private_mode_, IDC_CHECK_PRIVATE ) } )
+PreferenceTabAuth::PreferenceTabAuth( PreferenceTabManager* pParent )
+    : pParent_( pParent )
+    , ddxOptions_( {} )
 {
 }
 
-Preferences::~Preferences()
+PreferenceTabAuth::~PreferenceTabAuth()
 {
     for ( auto& ddxOpt: ddxOptions_ )
     {
@@ -85,12 +34,22 @@ Preferences::~Preferences()
     }
 }
 
-HWND Preferences::get_wnd()
+HWND PreferenceTabAuth::CreateTab( HWND hParent )
 {
-    return m_hWnd;
+    return Create( hParent );
 }
 
-t_uint32 Preferences::get_state()
+CDialogImplBase& PreferenceTabAuth::Dialog()
+{
+    return *this;
+}
+
+const wchar_t* PreferenceTabAuth::Name() const
+{
+    return L"Authorization";
+}
+
+t_uint32 PreferenceTabAuth::get_state()
 {
     const bool hasChanged =
         ddxOptions_.cend() != std::find_if( ddxOptions_.cbegin(), ddxOptions_.cend(), []( const auto& ddxOpt ) {
@@ -100,19 +59,17 @@ t_uint32 Preferences::get_state()
     return ( preferences_state::resettable | ( hasChanged ? preferences_state::changed : 0 ) );
 }
 
-void Preferences::apply()
+void PreferenceTabAuth::apply()
 {
     for ( auto& ddxOpt: ddxOptions_ )
     {
         ddxOpt->Option().Apply();
     }
 
-    RefreshLibSpotifySettings();
-
-    callback_->on_state_changed();
+    pParent_->OnDataChanged();
 }
 
-void Preferences::reset()
+void PreferenceTabAuth::reset()
 {
     for ( auto& ddxOpt: ddxOptions_ )
     {
@@ -120,16 +77,11 @@ void Preferences::reset()
     }
     UpdateUiFromCfg();
 
-    callback_->on_state_changed();
+    pParent_->OnDataChanged();
 }
 
-BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
+BOOL PreferenceTabAuth::OnInitDialog( HWND hwndFocus, LPARAM lParam )
 {
-    comboBitrate_ = GetDlgItem( IDC_COMBO_BITRATE );
-    comboBitrate_.AddString( L"96 kbit/s" );
-    comboBitrate_.AddString( L"160 kbit/s" );
-    comboBitrate_.AddString( L"320 kbit/s" );
-
     btnLibSpotify_ = GetDlgItem( IDC_BTN_LOGIN_LIBSPOTIFY );
     btnWebApi_ = GetDlgItem( IDC_BTN_LOGIN_WEBAPI );
 
@@ -156,7 +108,7 @@ BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
             try
             {
                 qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "WebApi relogin" ) );
-                auth.AuthenticateWithRefreshToken( tac );
+                auth.UpdateRefreshToken( tac );
                 return true;
             }
             catch ( const std::exception& )
@@ -174,7 +126,7 @@ BOOL Preferences::OnInitDialog( HWND hwndFocus, LPARAM lParam )
     return TRUE; // set focus to default control
 }
 
-void Preferences::OnDestroy()
+void PreferenceTabAuth::OnDestroy()
 {
     auto& auth = SpotifyInstance::Get().GetWebApi_Backend().GetAuthorizer();
     if ( webApiStatus_ == LoginStatus::logged_in )
@@ -196,7 +148,7 @@ void Preferences::OnDestroy()
     }
 }
 
-HBRUSH Preferences::OnCtlColorStatic( CDCHandle dc, CStatic wndStatic )
+HBRUSH PreferenceTabAuth::OnCtlColorStatic( CDCHandle dc, CStatic wndStatic )
 {
     const auto id = wndStatic.GetDlgCtrlID();
     if ( id == IDC_STATIC_LIBSPOTIFY_STATUS
@@ -219,7 +171,7 @@ HBRUSH Preferences::OnCtlColorStatic( CDCHandle dc, CStatic wndStatic )
         };
 
         ::SetTextColor( dc, getColour( id == IDC_STATIC_LIBSPOTIFY_STATUS ? libSpotifyStatus_ : webApiStatus_ ) );
-        ::SetBkColor( dc, GetSysColor( COLOR_BTNFACE ) );
+        ::SetBkColor( dc, GetSysColor( COLOR_WINDOW ) );
         return (HBRUSH)GetStockObject( HOLLOW_BRUSH );
     }
 
@@ -228,7 +180,7 @@ HBRUSH Preferences::OnCtlColorStatic( CDCHandle dc, CStatic wndStatic )
     return 0;
 }
 
-void Preferences::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
+void PreferenceTabAuth::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
     auto it = std::find_if( ddxOptions_.begin(), ddxOptions_.end(), [nID]( auto& val ) {
         return val->Ddx().IsMatchingId( nID );
@@ -237,11 +189,11 @@ void Preferences::OnDdxChange( UINT uNotifyCode, int nID, CWindow wndCtl )
     if ( ddxOptions_.end() != it )
     {
         ( *it )->Ddx().ReadFromUi();
-        callback_->on_state_changed();
+        pParent_->OnDataChanged();
     }
 }
 
-void Preferences::OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl )
+void PreferenceTabAuth::OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
     (void)uNotifyCode;
     (void)nID;
@@ -262,7 +214,7 @@ void Preferences::OnLibSpotifyLoginClick( UINT uNotifyCode, int nID, CWindow wnd
     UpdateLibSpotifyUi();
 }
 
-void Preferences::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl )
+void PreferenceTabAuth::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl )
 {
     (void)uNotifyCode;
     (void)nID;
@@ -301,7 +253,7 @@ void Preferences::OnWebApiLoginClick( UINT uNotifyCode, int nID, CWindow wndCtl 
     }
 }
 
-LRESULT Preferences::OnWebApiLoginResponse( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+LRESULT PreferenceTabAuth::OnWebApiLoginResponse( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
 {
     (void)uMsg;
     (void)wParam;
@@ -317,7 +269,7 @@ LRESULT Preferences::OnWebApiLoginResponse( UINT uMsg, WPARAM wParam, LPARAM lPa
     return 0;
 }
 
-LRESULT Preferences::OnStatusUpdateFinish( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+LRESULT PreferenceTabAuth::OnStatusUpdateFinish( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
 {
     (void)uMsg;
 
@@ -331,7 +283,7 @@ LRESULT Preferences::OnStatusUpdateFinish( UINT uMsg, WPARAM wParam, LPARAM lPar
     return 0;
 }
 
-void Preferences::UpdateUiFromCfg()
+void PreferenceTabAuth::UpdateUiFromCfg()
 {
     if ( !this->m_hWnd )
     {
@@ -344,7 +296,7 @@ void Preferences::UpdateUiFromCfg()
     }
 }
 
-void Preferences::UpdateLibSpotifyUi()
+void PreferenceTabAuth::UpdateLibSpotifyUi()
 {
     const auto getUsername = [] {
         return SpotifyInstance::Get().GetLibSpotify_Backend().GetLoggedInUserName();
@@ -352,7 +304,7 @@ void Preferences::UpdateLibSpotifyUi()
     UpdateBackendUi( libSpotifyStatus_, btnLibSpotify_, textLibSpotify_, getUsername );
 }
 
-void Preferences::UpdateWebApiUi()
+void PreferenceTabAuth::UpdateWebApiUi()
 {
     const auto getUsername = [] {
         qwr::TimedAbortCallback tac( fmt::format( "{}: {}", SPTF_UNDERSCORE_NAME, "WebApi get username" ) );
@@ -370,7 +322,7 @@ void Preferences::UpdateWebApiUi()
     UpdateBackendUi( webApiStatus_, btnWebApi_, textWebApi_, getUsername );
 }
 
-void Preferences::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn )
+void PreferenceTabAuth::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn )
 {
     Invalidate(); ///< needed to clear static text
 
@@ -419,14 +371,6 @@ void Preferences::UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStati
     default:
         break;
     }
-}
-
-void Preferences::RefreshLibSpotifySettings()
-{
-    auto& lsBackend = SpotifyInstance::Get().GetLibSpotify_Backend();
-    lsBackend.RefreshBitrate();
-    lsBackend.RefreshNormalization();
-    lsBackend.RefreshPrivateMode();
 }
 
 } // namespace sptf::ui

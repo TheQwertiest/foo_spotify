@@ -33,10 +33,10 @@ public:
 
     void AuthenticateClean( const WebApiAuthScopes& scopes, std::function<void()> onResponseEnd );
     void AuthenticateClean_Cleanup();
-    void AuthenticateWithRefreshToken( abort_callback& abort );
+    void UpdateRefreshToken( abort_callback& abort );
 
 private:
-    void AuthenticateWithRefreshToken_NonBlocking( abort_callback& abort );
+    void UpdateRefreshToken_NonBlocking( abort_callback& abort );
     pplx::task<void> CompleteAuthentication( const std::wstring& respondUrl );
 
     void StartResponseListener( std::function<void()> onResponseEnd );

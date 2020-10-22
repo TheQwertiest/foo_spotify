@@ -177,7 +177,7 @@ struct AuthData
 {
     std::wstring accessToken;
     std::wstring refreshToken;
-    std::chrono::time_point<std::chrono::system_clock> expiresIn = std::chrono::system_clock::now();
+    std::chrono::time_point<std::chrono::system_clock> expiresAt = std::chrono::system_clock::now();
     WebApiAuthScopes scopes;
 };
 
@@ -185,7 +185,7 @@ void to_json( nlohmann::json& j, const AuthData& p )
 {
     j["access_token"] = p.accessToken;
     j["refresh_token"] = p.refreshToken;
-    j["expires_in"] = std::chrono::time_point_cast<std::chrono::minutes>( p.expiresIn ).time_since_epoch().count();
+    j["expires_at"] = std::chrono::time_point_cast<std::chrono::minutes>( p.expiresAt ).time_since_epoch().count();
     j["scopes"] = p.scopes;
 }
 
@@ -193,7 +193,7 @@ void from_json( const nlohmann::json& j, AuthData& p )
 {
     j.at( "access_token" ).get_to( p.accessToken );
     j.at( "refresh_token" ).get_to( p.refreshToken );
-    p.expiresIn = std::chrono::time_point<std::chrono::system_clock>( std::chrono::minutes( j.at( "expires_in" ).get<int>() ) );
+    p.expiresAt = std::chrono::time_point<std::chrono::system_clock>( std::chrono::minutes( j.at( "expires_at" ).get<int>() ) );
     if ( j.contains( "scopes" ) )
     {
         j["scopes"].get_to( p.scopes );
@@ -259,10 +259,7 @@ const std::wstring WebApiAuthorizer::GetAccessToken( abort_callback& abort )
         throw qwr::QwrException( "Failed to get authenticated Spotify session" );
     }
 
-    if ( std::chrono::system_clock::now() - pAuthData_->expiresIn > std::chrono::minutes( 1 ) )
-    {
-        AuthenticateWithRefreshToken_NonBlocking( abort );
-    }
+    UpdateRefreshToken_NonBlocking( abort );
 
     assert( !pAuthData_->accessToken.empty() );
     return pAuthData_->accessToken;
@@ -320,15 +317,20 @@ void WebApiAuthorizer::AuthenticateClean_Cleanup()
     StopResponseListener();
 }
 
-void WebApiAuthorizer::AuthenticateWithRefreshToken( abort_callback& abort )
+void WebApiAuthorizer::UpdateRefreshToken( abort_callback& abort )
 {
     std::lock_guard lock( accessTokenMutex_ );
-    AuthenticateWithRefreshToken_NonBlocking( abort );
+    UpdateRefreshToken_NonBlocking( abort );
 }
 
-void WebApiAuthorizer::AuthenticateWithRefreshToken_NonBlocking( abort_callback& abort )
+void WebApiAuthorizer::UpdateRefreshToken_NonBlocking( abort_callback& abort )
 {
     assert( pAuthData_ );
+
+    if ( std::chrono::system_clock::now() > pAuthData_->expiresAt + std::chrono::minutes( 1 ) )
+    {
+        return;
+    }
 
     web::uri_builder builder;
     builder.append_query( L"grant_type", L"refresh_token" );
@@ -501,7 +503,7 @@ void WebApiAuthorizer::HandleAuthenticationResponse( const web::http::http_respo
     auto pAuthData = std::make_unique<AuthData>();
     pAuthData->accessToken = responseJson.at( L"access_token" ).as_string();
     pAuthData->refreshToken = responseJson.at( L"refresh_token" ).as_string();
-    pAuthData->expiresIn = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
+    pAuthData->expiresAt = std::chrono::system_clock::now() + std::chrono::seconds( responseJson.at( L"expires_in" ).as_integer() );
 
     auto scopesSplit = qwr::string::Split<wchar_t>( responseJson.at( L"scope" ).as_string(), L' ' );
     pAuthData->scopes = WebApiAuthScopes( scopesSplit );

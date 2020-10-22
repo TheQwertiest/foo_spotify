@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fb2k/config.h>
+#include <ui/ui_ipref_tab.h>
 
 #include <resource.h>
 
@@ -13,9 +14,11 @@
 namespace sptf::ui
 {
 
-class Preferences
-    : public CDialogImpl<Preferences>
-    , public preferences_page_instance
+class PreferenceTabManager;
+
+class PreferenceTabAuth
+    : public CDialogImpl<PreferenceTabAuth>
+    , public IPrefTab
 {
 private:
     enum class LoginStatus
@@ -29,14 +32,17 @@ private:
 public:
     enum
     {
-        IDD = IDD_PREFERENCES
+        IDD = IDD_PREF_TAB_AUTH
     };
 
-    Preferences( preferences_page_callback::ptr callback );
-    ~Preferences() override;
+    PreferenceTabAuth( PreferenceTabManager* pParent );
+    ~PreferenceTabAuth() override;
 
-    // preferences_page_instance
-    HWND get_wnd() override;
+    // IPrefTab
+    HWND CreateTab( HWND hParent ) override;
+    CDialogImplBase& Dialog() override;
+    const wchar_t* Name() const override;
+
     t_uint32 get_state() override;
     void apply() override;
     void reset() override;
@@ -45,13 +51,10 @@ protected:
     static constexpr int kOnWebApiLoginResponse = WM_USER + 1;
     static constexpr int kOnStatusUpdateFinish = WM_USER + 2;
 
-    BEGIN_MSG_MAP( Preferences )
+    BEGIN_MSG_MAP( PreferenceTabAuth )
         MSG_WM_INITDIALOG( OnInitDialog )
         MSG_WM_DESTROY( OnDestroy )
         MSG_WM_CTLCOLORSTATIC( OnCtlColorStatic )
-        COMMAND_HANDLER_EX( IDC_COMBO_BITRATE, CBN_SELCHANGE, OnDdxChange )
-        COMMAND_HANDLER_EX( IDC_CHECK_NORMALIZE, BN_CLICKED, OnDdxChange )
-        COMMAND_HANDLER_EX( IDC_CHECK_PRIVATE, BN_CLICKED, OnDdxChange )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_LIBSPOTIFY, BN_CLICKED, OnLibSpotifyLoginClick )
         COMMAND_HANDLER_EX( IDC_BTN_LOGIN_WEBAPI, BN_CLICKED, OnWebApiLoginClick )
         MESSAGE_HANDLER( kOnWebApiLoginResponse, OnWebApiLoginResponse )
@@ -76,25 +79,11 @@ private:
     void UpdateWebApiUi();
     void UpdateBackendUi( LoginStatus loginStatus, CButton& btn, CStatic& text, std::function<std::string()> getUserNameFn );
 
-    void RefreshLibSpotifySettings();
-
 private:
-    preferences_page_callback::ptr callback_;
+    PreferenceTabManager* pParent_ = nullptr;
 
-#define SPTF_DEFINE_UI_OPTION( name ) \
-    qwr::ui::UiOption<decltype( config::name )> name##_;
-
-#define SPTF_DEFINE_UI_OPTIONS( ... ) \
-    QWR_EXPAND( QWR_PASTE( SPTF_DEFINE_UI_OPTION, __VA_ARGS__ ) )
-
-    SPTF_DEFINE_UI_OPTIONS( preferred_bitrate, enable_normalization, enable_private_mode )
-
-#undef SPTF_DEFINE_OPTIONS
-#undef SPTF_DEFINE_OPTION
-
-    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 3> ddxOptions_;
-
-    CComboBox comboBitrate_;
+    //qwr::ui::UiOption<decltype( config::preferred_bitrate )> preferred_bitrate_;
+    std::array<std::unique_ptr<qwr::ui::IUiDdxOption>, 0> ddxOptions_;
 
     CButton btnLibSpotify_;
     CButton btnWebApi_;
