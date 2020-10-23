@@ -25,11 +25,19 @@
 
 namespace fs = std::filesystem;
 
+namespace
+{
+
+constexpr size_t kRpsLimit = 2;
+
+}
+
 namespace sptf
 {
 
 WebApi_Backend::WebApi_Backend( AbortManager& abortManager )
     : abortManager_( abortManager )
+    , rpsLimiter_( kRpsLimit )
     , client_( url::spotifyApi, GetClientConfig() )
     , trackCache_( "tracks" )
     , artistCache_( "artists" )
@@ -315,7 +323,8 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
 {
     if ( shouldLogWebApi_ )
     {
-        FB2K_console_formatter() << qwr::unicode::ToU8( requestUri.to_string() );
+        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): request:\n"
+                                 << qwr::unicode::ToU8( requestUri.to_string() );
     }
 
     web::http::http_request req( web::http::methods::GET );
@@ -323,6 +332,8 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     req.headers().add( L"Accept", L"application/json" );
     req.headers().set_content_type( L"application/json" );
     req.set_request_uri( requestUri );
+
+    rpsLimiter_.WaitForRequestAvailability( abort );
 
     auto ctsToken = cts_.get_token();
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
@@ -346,7 +357,8 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
             qwr::QwrException::ExpectTrue( retryInMsOpt.has_value(), "Request failed with 429 error, but does not contain a valid number in `Retry-After` header" );
 
             const auto retryIn = std::chrono::milliseconds( *retryInMsOpt ) + std::chrono::seconds( 1 );
-            FB2K_console_formatter() << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
+            FB2K_console_formatter() << SPTF_UNDERSCORE_NAME ":\n"
+                                     << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
             if ( !SleepFor( retryIn, abort ) )
             {
                 break;
@@ -377,7 +389,8 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
     if ( shouldLogWebApi_ )
     {
-        FB2K_console_formatter() << responseJson.dump( 2 );
+        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): response:\n"
+                                 << responseJson.dump( 2 );
     }
     qwr::QwrException::ExpectTrue( responseJson.is_object(),
                                    L"Malformed track data response response: json is not an object" );

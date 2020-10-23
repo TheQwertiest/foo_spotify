@@ -42,6 +42,7 @@
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\foobar2000_sdk.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\json.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\range.props" />
+    <Import Project="$(QwrFb2kUtilsPropsDir)submodules\ring_span.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\pfc.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\span.props" />
     <Import Project="$(QwrFb2kUtilsPropsDir)submodules\wtl.props" />
@@ -138,6 +139,7 @@
     <ClCompile Include="ui\ui_pref_tab_playback.cpp" />
     <ClCompile Include="utils\abort_manager.cpp" />
     <ClCompile Include="utils\cred_prompt.cpp" />
+    <ClCompile Include="utils\rps_limiter.cpp" />
     <ClCompile Include="utils\sleeper.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -181,6 +183,7 @@
     <ClInclude Include="utils\cred_prompt.h" />
     <ClInclude Include="utils\json_macro_fix.h" />
     <ClInclude Include="utils\json_std_extenders.h" />
+    <ClInclude Include="utils\rps_limiter.h" />
     <ClInclude Include="utils\secure_vector.h" />
     <ClInclude Include="utils\sleeper.h" />
   </ItemGroup>

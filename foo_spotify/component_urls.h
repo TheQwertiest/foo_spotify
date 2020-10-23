@@ -11,4 +11,4 @@ constexpr wchar_t redirectUri[] = L"http://localhost:23017";
 
 constexpr wchar_t homepage[] = L"https://github.com/TheQwertiest/" SPTF_UNDERSCORE_NAME;
 
-} // namespace sptf::guid
+} // namespace sptf::url

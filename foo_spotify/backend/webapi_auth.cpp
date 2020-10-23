@@ -327,7 +327,7 @@ void WebApiAuthorizer::UpdateRefreshToken_NonBlocking( abort_callback& abort )
 {
     assert( pAuthData_ );
 
-    if ( std::chrono::system_clock::now() > pAuthData_->expiresAt + std::chrono::minutes( 1 ) )
+    if ( std::chrono::system_clock::now() + std::chrono::minutes( 1 ) < pAuthData_->expiresAt )
     {
         return;
     }

@@ -88,7 +88,7 @@
     <ClCompile Include="backend\webapi_objects\webapi_track_link.cpp">
       <Filter>backend\webapi_objects</Filter>
     </ClCompile>
-    <ClCompile Include="utils\sleeper.cpp" >
+    <ClCompile Include="utils\sleeper.cpp">
       <Filter>utils</Filter>
     </ClCompile>
     <ClCompile Include="ui\ui_pref_tab_manager.cpp">
@@ -100,6 +100,7 @@
     <ClCompile Include="ui\ui_pref_tab_playback.cpp">
       <Filter>ui</Filter>
     </ClCompile>
+    <ClCompile Include="utils\rps_limiter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />
@@ -217,6 +218,9 @@
     </ClInclude>
     <ClInclude Include="ui\ui_pref_tab_playback.h">
       <Filter>ui</Filter>
+    </ClInclude>
+    <ClInclude Include="utils\rps_limiter.h">
+      <Filter>utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

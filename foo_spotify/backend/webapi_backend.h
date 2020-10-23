@@ -1,6 +1,7 @@
 #pragma once
 
 #include <backend/webapi_cache.h>
+#include <utils/rps_limiter.h>
 
 #include <cpprest/http_client.h>
 #include <nonstd/span.hpp>
@@ -61,6 +62,7 @@ private:
 
 private:
     AbortManager& abortManager_;
+    RpsLimiter rpsLimiter_;
 
     bool shouldLogWebApi_ = false;
 

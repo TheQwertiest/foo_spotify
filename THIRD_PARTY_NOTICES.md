@@ -8,5 +8,6 @@ The linked notices are provided for information only.
 - [LibSpotify - other](licenses/LibSpotify.txt)
 - [PFC - zlib](licenses/PFC.txt)
 - [range-v3 - BSL-1.0](licenses/range-v3.txt)
-- [span lite - BSL-1.0](licenses/span%20lite.txt)
+- [ring-span-lite - BSL-1.0](licenses/ring-span-lite.txt)
+- [span-lite - BSL-1.0](licenses/span-lite.txt)
 - [WTL - MS-PL](licenses/WTL.txt)
