@@ -9,21 +9,43 @@
 ___
 
 ## [Unreleased][]
+### Added
+- `local` Spotify tracks are filtered out when importing the playlist ([#18](https://github.com/TheQwertiest/foo_spotify/issues/18)).
+- *Play* the artist: adds top tracks for the artist ([#15](https://github.com/TheQwertiest/foo_spotify/issues/15)).
+- `%codec%` metadata field ([#14](https://github.com/TheQwertiest/foo_spotify/issues/14)).
+- More options in `Preferences`:
+  - Cache size configuration ([#23](https://github.com/TheQwertiest/foo_spotify/issues/23)).
+  - Spotify `private mode` option ([#13](https://github.com/TheQwertiest/foo_spotify/issues/13)).
+  - Spotify normalization option ([#12](https://github.com/TheQwertiest/foo_spotify/issues/12)).
+
+### Changed
+- Better Web API handling in attempt to avoid 429 errors:
+ - RPS limit ([#27](https://github.com/TheQwertiest/foo_spotify/issues/27)).
+ - `retry-after` response header handling ([#11](https://github.com/TheQwertiest/foo_spotify/issues/11)).
+- Improved error message when track is not available in user's country ([#8](https://github.com/TheQwertiest/foo_spotify/issues/8)).
+
+### Fixed
+- Can't relogin without closing Preferences dialog ([#24](https://github.com/TheQwertiest/foo_spotify/issues/24)).
+- Dynamic info change is signaled too frequently, despite data being the same ([#22](https://github.com/TheQwertiest/foo_spotify/issues/22)).
+- Can't play tracks when buffering is enabled in fb2k ([#21](https://github.com/TheQwertiest/foo_spotify/issues/21)).
+- Crash: Illegal operation ([#19](https://github.com/TheQwertiest/foo_spotify/issues/19)).
+- Multi-value tags are not displayed correctly ([#17](https://github.com/TheQwertiest/foo_spotify/issues/17)).
+- Can't import playlists with local tracks ([#16](https://github.com/TheQwertiest/foo_spotify/issues/16)).
 
 ## [1.0.2][] - 2020-10-04
 
 ### Added
-- Add proxy support ([#6](https://github.com/TheQwertiest/foo_spotify/issues/6))
-- Add ability to adjust bit-rate via `Preferences` ([#5](https://github.com/TheQwertiest/foo_spotify/issues/5))
-- Fill bit-rate metadata for playing track ([#4](https://github.com/TheQwertiest/foo_spotify/issues/4))
+- Proxy support ([#6](https://github.com/TheQwertiest/foo_spotify/issues/6)).
+- Adjust bit-rate via `Preferences` ([#5](https://github.com/TheQwertiest/foo_spotify/issues/5)).
+- Bit-rate metadata for playing track ([#4](https://github.com/TheQwertiest/foo_spotify/issues/4)).
 
 ### Fixed
-- Fails to open track that has null `preview_url` ([#3](https://github.com/TheQwertiest/foo_spotify/issues/3))
+- Fails to open track that has null `preview_url` ([#3](https://github.com/TheQwertiest/foo_spotify/issues/3)).
 
 ## [1.0.1][] - 2020-10-03
 
 ### Fixed
-- LibSpotify login doesn't always work ([#1](https://github.com/TheQwertiest/foo_spotify/issues/1))
+- LibSpotify login doesn't always work ([#1](https://github.com/TheQwertiest/foo_spotify/issues/1)).
 
 ## [1.0.0][] - 2020-10-02
 Initial release.
