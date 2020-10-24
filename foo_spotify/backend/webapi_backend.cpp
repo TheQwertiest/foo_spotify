@@ -65,11 +65,22 @@ WebApiAuthorizer& WebApi_Backend::GetAuthorizer()
 
 std::unique_ptr<const sptf::WebApi_User> WebApi_Backend::GetUser( abort_callback& abort )
 {
-    web::uri_builder builder;
-    builder.append_path( L"me" );
+    if ( auto userOpt = userCache_.GetObjectFromCache();
+         userOpt )
+    {
+        return std::unique_ptr<sptf::WebApi_User>( std::move( *userOpt ) );
+    }
+    else
+    {
+        web::uri_builder builder;
+        builder.append_path( L"me" );
 
-    const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
-    return responseJson.get<std::unique_ptr<WebApi_User>>();
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+        auto ret = responseJson.get<std::unique_ptr<WebApi_User>>();
+
+        userCache_.CacheObject( *ret );
+        return std::unique_ptr<sptf::WebApi_User>( std::move( ret ) );
+    }
 }
 
 std::unique_ptr<const sptf::WebApi_Track>
@@ -321,6 +332,11 @@ web::http::client::http_client_config WebApi_Backend::GetClientConfig()
 
 nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abort_callback& abort )
 {
+    return ParseResponse( GetResponse( requestUri, abort ) );
+}
+
+web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri, abort_callback& abort )
+{
     if ( shouldLogWebApi_ )
     {
         FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): request:\n"
@@ -328,9 +344,10 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     }
 
     web::http::http_request req( web::http::methods::GET );
-    req.headers().add( L"Authorization", L"Bearer " + pAuth_->GetAccessToken( abort ) );
+    req.headers().add( L"Authorization", fmt::format( L"Bearer {}", pAuth_->GetAccessToken( abort ) ) );
     req.headers().add( L"Accept", L"application/json" );
     req.headers().set_content_type( L"application/json" );
+
     req.set_request_uri( requestUri );
 
     rpsLimiter_.WaitForRequestAvailability( abort );
@@ -339,34 +356,36 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
     const auto abortableScope = abortManager_.GetAbortableScope( [&localCts] { localCts.cancel(); }, abort );
 
-    const auto response = [&] {
-        web::http::http_response response;
-        for ( size_t i = 0; i < 3; ++i )
+    web::http::http_response response;
+    for ( size_t i = 0; i < 3; ++i )
+    {
+        response = client_.request( req, localCts.get_token() ).get();
+        if ( response.status_code() != 429 )
         {
-            response = client_.request( req, localCts.get_token() ).get();
-            if ( response.status_code() != 429 )
-            {
-                return response;
-            }
-
-            const auto it = response.headers().find( L"Retry-After" );
-            qwr::QwrException::ExpectTrue( it != response.headers().end(), "Request failed with 429 error, but does not contain a `Retry-After` header" );
-
-            const auto& [_, retryHeader] = *it;
-            const auto retryInMsOpt = qwr::string::GetNumber<uint32_t>( qwr::unicode::ToU8( retryHeader ) );
-            qwr::QwrException::ExpectTrue( retryInMsOpt.has_value(), "Request failed with 429 error, but does not contain a valid number in `Retry-After` header" );
-
-            const auto retryIn = std::chrono::milliseconds( *retryInMsOpt ) + std::chrono::seconds( 1 );
-            FB2K_console_formatter() << SPTF_UNDERSCORE_NAME ":\n"
-                                     << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
-            if ( !SleepFor( retryIn, abort ) )
-            {
-                break;
-            }
+            break;
         }
-        return response;
-    }();
 
+        const auto it = response.headers().find( L"Retry-After" );
+        qwr::QwrException::ExpectTrue( it != response.headers().end(), "Request failed with 429 error, but does not contain a `Retry-After` header" );
+
+        const auto& [_, retryHeader] = *it;
+        const auto retryInMsOpt = qwr::string::GetNumber<uint32_t>( qwr::unicode::ToU8( retryHeader ) );
+        qwr::QwrException::ExpectTrue( retryInMsOpt.has_value(), "Request failed with 429 error, but does not contain a valid number in `Retry-After` header" );
+
+        const auto retryIn = std::chrono::milliseconds( *retryInMsOpt ) + std::chrono::seconds( 1 );
+        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME ":\n"
+                                 << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
+        if ( !SleepFor( retryIn, abort ) )
+        {
+            break;
+        }
+    }
+
+    return response;
+}
+
+nlohmann::json WebApi_Backend::ParseResponse( const web::http::http_response& response )
+{
     if ( response.status_code() != 200 )
     {
         throw qwr::QwrException( L"{}: {}\n"

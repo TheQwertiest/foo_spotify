@@ -132,6 +132,23 @@ HRESULT DownloadStatus::OnProgress( ULONG ulProgress, ULONG ulProgressMax,
 namespace sptf
 {
 
+WebApi_UserCache::WebApi_UserCache()
+    : jsonCache_( "" )
+{
+}
+
+void WebApi_UserCache::CacheObject( const WebApi_User& object, bool force /*= false */ )
+{
+    std::lock_guard lock( cacheMutex_ );
+    jsonCache_.CacheObject_NonBlocking( object, "me", force );
+}
+
+std::optional<std::unique_ptr<sptf::WebApi_User>> WebApi_UserCache::GetObjectFromCache()
+{
+    std::lock_guard lock( cacheMutex_ );
+    return jsonCache_.GetObjectFromCache_NonBlocking( "me" );
+}
+
 WebApi_ImageCache::WebApi_ImageCache( const std::string& cacheSubdir )
     : cacheSubdir_( cacheSubdir )
 {

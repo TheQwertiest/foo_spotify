@@ -114,6 +114,23 @@ private:
     WebApi_JsonCache<T> jsonCache_;
 };
 
+struct WebApi_User;
+
+class WebApi_UserCache
+{
+public:
+    WebApi_UserCache();
+
+    void CacheObject( const WebApi_User& object, bool force = false );
+
+    std::optional<std::unique_ptr<WebApi_User>>
+    GetObjectFromCache();
+
+private:
+    std::mutex cacheMutex_;
+    WebApi_JsonCache<WebApi_User> jsonCache_;
+};
+
 class WebApi_ImageCache
 {
 public:

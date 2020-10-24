@@ -58,7 +58,10 @@ public:
 
 private:
     static web::http::client::http_client_config GetClientConfig();
+
     nlohmann::json GetJsonResponse( const web::uri& requestUri, abort_callback& abort );
+    web::http::http_response GetResponse( const web::uri& requestUri, abort_callback& abort );
+    nlohmann::json ParseResponse( const web::http::http_response& response );
 
 private:
     AbortManager& abortManager_;
@@ -70,6 +73,7 @@ private:
     std::unique_ptr<WebApiAuthorizer> pAuth_;
     web::http::client::http_client client_;
 
+    WebApi_UserCache userCache_;
     WebApi_ObjectCache<WebApi_Track> trackCache_;
     WebApi_ObjectCache<WebApi_Artist> artistCache_;
 
