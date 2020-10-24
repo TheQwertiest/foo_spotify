@@ -285,14 +285,17 @@ std::string LibSpotify_Backend::GetLoggedInUserName()
     }
 
     std::lock_guard lock( apiMutex_ );
-    // TODO: add sp_user_display_name
-    const char* userName = sp_session_user_name( pSpSession_ );
-    if ( !userName )
+
+    // `sp_user_display_name` always returns canonical name:
+    // https://stackoverflow.com/questions/23797162/sp-user-display-name-always-returns-canonical-name-even-when-user-is-loaded
+
+    const char* email = sp_session_user_name( pSpSession_ );
+    if ( !email )
     {
         return "<error: user name could not be fetched>";
     }
 
-    return userName;
+    return email;
 }
 
 void LibSpotify_Backend::RefreshBitrate()
