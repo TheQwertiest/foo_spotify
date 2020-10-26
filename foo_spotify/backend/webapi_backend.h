@@ -55,6 +55,8 @@ public:
     std::vector<std::unordered_multimap<std::string, std::string>>
     GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>> tracks );
 
+    void RefreshCacheForArtists( nonstd::span<const std::string> artistIds, abort_callback& abort );
+
     std::unique_ptr<const WebApi_Artist>
     GetArtist( const std::string& artistId, abort_callback& abort );
 

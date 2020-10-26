@@ -318,6 +318,32 @@ WebApi_Backend::GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebAp
     return ret;
 }
 
+void WebApi_Backend::RefreshCacheForArtists( nonstd::span<const std::string> artistIds, abort_callback& abort )
+{
+    // remove duplicates
+    const auto uniqueIds = artistIds | ranges::to<std::unordered_set<std::string>>;
+
+    for ( const auto& idsChunk:
+          uniqueIds
+              | ranges::views::remove_if( [&]( const auto& id ) { return artistCache_.IsCached( id ); } )
+              | ranges::views::chunk( 50 ) )
+    {
+        const auto idsStr = qwr::unicode::ToWide( qwr::string::Join( idsChunk | ranges::to_vector, ',' ) );
+
+        web::uri_builder builder;
+        builder.append_path( L"artists" );
+        builder.append_query( L"ids", idsStr );
+
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+        const auto artistsIt = responseJson.find( "artists" );
+        qwr::QwrException::ExpectTrue( responseJson.cend() != artistsIt,
+                                       L"Malformed track data response response: missing `artists`" );
+
+        auto ret = artistsIt->get<std::vector<std::unique_ptr<const WebApi_Artist>>>();
+        artistCache_.CacheObjects( ret );
+    }
+}
+
 std::unique_ptr<const WebApi_Artist>
 WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
 {
