@@ -23,6 +23,7 @@ ___
  - RPS limit ([#27](https://github.com/TheQwertiest/foo_spotify/issues/27)).
  - `retry-after` response header handling ([#11](https://github.com/TheQwertiest/foo_spotify/issues/11)).
  - Pre-emptive batch track update on playlist change ([#30](https://github.com/TheQwertiest/foo_spotify/issues/30)).
+ - Pre-emptive batch artist update on playlist change ([#31](https://github.com/TheQwertiest/foo_spotify/issues/31)).
 - Improved error message when track is not available in user's country ([#8](https://github.com/TheQwertiest/foo_spotify/issues/8)).
 
 ### Fixed
