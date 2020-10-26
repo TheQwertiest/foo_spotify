@@ -2,6 +2,7 @@
 
 #### Table of Contents
 - [Unreleased](#unreleased)
+- [1.1.0](#110---2020-10-26)
 - [1.0.2](#102---2020-10-04)
 - [1.0.1](#101---2020-10-03)
 - [1.0.0](#100---2020-10-02)
@@ -9,6 +10,8 @@
 ___
 
 ## [Unreleased][]
+
+## [1.1.0][] - 2020-10-26
 ### Added
 - `local` Spotify tracks are filtered out when importing the playlist ([#18](https://github.com/TheQwertiest/foo_spotify/issues/18)).
 - *Play* the artist: adds top tracks for the artist ([#15](https://github.com/TheQwertiest/foo_spotify/issues/15)).
@@ -52,7 +55,8 @@ ___
 ## [1.0.0][] - 2020-10-02
 Initial release.
 
-[unreleased]: https://github.com/TheQwertiest/foo_spotify/compare/v1.0.2...HEAD
+[unreleased]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/TheQwertiest/foo_spotify/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/TheQwertiest/foo_spotify/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/TheQwertiest/foo_spotify/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/TheQwertiest/foo_spotify/commits/master
