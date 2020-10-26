@@ -13,7 +13,6 @@ ___
 
 ## [1.1.0][] - 2020-10-26
 ### Added
-- `local` Spotify tracks are filtered out when importing the playlist ([#18](https://github.com/TheQwertiest/foo_spotify/issues/18)).
 - *Play* the artist: adds top tracks for the artist ([#15](https://github.com/TheQwertiest/foo_spotify/issues/15)).
 - `%codec%` metadata field ([#14](https://github.com/TheQwertiest/foo_spotify/issues/14)).
 - More options in `Preferences`:
@@ -23,10 +22,10 @@ ___
 
 ### Changed
 - Better Web API handling in attempt to avoid 429 errors:
- - RPS limit ([#27](https://github.com/TheQwertiest/foo_spotify/issues/27)).
- - `retry-after` response header handling ([#11](https://github.com/TheQwertiest/foo_spotify/issues/11)).
- - Pre-emptive batch track update on playlist change ([#30](https://github.com/TheQwertiest/foo_spotify/issues/30)).
- - Pre-emptive batch artist update on playlist change ([#31](https://github.com/TheQwertiest/foo_spotify/issues/31)).
+  - RPS limit ([#27](https://github.com/TheQwertiest/foo_spotify/issues/27)).
+  - `retry-after` response header handling ([#11](https://github.com/TheQwertiest/foo_spotify/issues/11)).
+  - Pre-emptive batch track update on playlist change ([#30](https://github.com/TheQwertiest/foo_spotify/issues/30)).
+  - Pre-emptive batch artist update on playlist change ([#31](https://github.com/TheQwertiest/foo_spotify/issues/31)).
 - Improved error message when track is not available in user's country ([#8](https://github.com/TheQwertiest/foo_spotify/issues/8)).
 
 ### Fixed
@@ -35,7 +34,7 @@ ___
 - Can't play tracks when buffering is enabled in fb2k ([#21](https://github.com/TheQwertiest/foo_spotify/issues/21)).
 - Crash: Illegal operation ([#19](https://github.com/TheQwertiest/foo_spotify/issues/19)).
 - Multi-value tags are not displayed correctly ([#17](https://github.com/TheQwertiest/foo_spotify/issues/17)).
-- Can't import playlists with local tracks ([#16](https://github.com/TheQwertiest/foo_spotify/issues/16)).
+- Can't import playlists with local tracks ([#16](https://github.com/TheQwertiest/foo_spotify/issues/16), [#18](https://github.com/TheQwertiest/foo_spotify/issues/18)).
 
 ## [1.0.2][] - 2020-10-04
 
