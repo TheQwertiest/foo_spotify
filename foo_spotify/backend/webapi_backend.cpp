@@ -20,6 +20,7 @@
 #include <qwr/winapi_error_helpers.h>
 
 #include <filesystem>
+#include <unordered_set>
 
 // TODO: replace unique_ptr with shared_ptr wherever needed to avoid copying
 
@@ -37,6 +38,8 @@ namespace sptf
 
 WebApi_Backend::WebApi_Backend( AbortManager& abortManager )
     : abortManager_( abortManager )
+    , shouldLogWebApiRequest_( config::advanced::logging_webapi_request )
+    , shouldLogWebApiResponse_( config::advanced::logging_webapi_response )
     , rpsLimiter_( kRpsLimit )
     , client_( url::spotifyApi, GetClientConfig() )
     , trackCache_( "tracks" )
@@ -45,7 +48,6 @@ WebApi_Backend::WebApi_Backend( AbortManager& abortManager )
     , artistImageCache_( "artists" )
     , pAuth_( std::make_unique<WebApiAuthorizer>( GetClientConfig(), abortManager ) )
 {
-    shouldLogWebApi_ = config::advanced::logging_webapi;
 }
 
 WebApi_Backend::~WebApi_Backend()
@@ -83,6 +85,32 @@ std::unique_ptr<const sptf::WebApi_User> WebApi_Backend::GetUser( abort_callback
     }
 }
 
+void WebApi_Backend::RefreshCacheForTracks( nonstd::span<const std::string> trackIds, abort_callback& abort )
+{
+    // remove duplicates
+    const auto uniqueIds = trackIds | ranges::to<std::unordered_set<std::string>>;
+
+    for ( const auto& trackIdsChunk:
+          uniqueIds
+              | ranges::views::remove_if( [&]( const auto& id ) { return trackCache_.IsCached( id ); } )
+              | ranges::views::chunk( 50 ) )
+    {
+        const auto trackIdsStr = qwr::unicode::ToWide( qwr::string::Join( trackIdsChunk | ranges::to_vector, ',' ) );
+
+        web::uri_builder builder;
+        builder.append_path( L"tracks" );
+        builder.append_query( L"ids", trackIdsStr );
+
+        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+        const auto tracksIt = responseJson.find( "tracks" );
+        qwr::QwrException::ExpectTrue( responseJson.cend() != tracksIt,
+                                       L"Malformed track data response response: missing `tracks`" );
+
+        auto ret = tracksIt->get<std::vector<std::unique_ptr<const WebApi_Track>>>();
+        trackCache_.CacheObjects( ret );
+    }
+}
+
 std::unique_ptr<const sptf::WebApi_Track>
 WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort, bool useRelink )
 {
@@ -116,6 +144,18 @@ WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort, boo
         }
         return std::unique_ptr<sptf::WebApi_Track>( std::move( ret ) );
     }
+}
+
+std::vector<std::unique_ptr<const WebApi_Track>>
+WebApi_Backend::GetTracks( nonstd::span<const std::string> trackIds, abort_callback& abort )
+{
+    RefreshCacheForTracks( trackIds, abort );
+
+    return trackIds | ranges::views::transform( [&]( const auto& id ) -> std::unique_ptr<const WebApi_Track> {
+               assert( trackCache_.IsCached( id ) );
+               return std::move( *trackCache_.GetObjectFromCache( id ) );
+           } )
+           | ranges::to_vector;
 }
 
 std::tuple<
@@ -337,7 +377,7 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
 
 web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri, abort_callback& abort )
 {
-    if ( shouldLogWebApi_ )
+    if ( shouldLogWebApiRequest_ )
     {
         FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): request:\n"
                                  << qwr::unicode::ToU8( requestUri.to_string() );
@@ -351,6 +391,7 @@ web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri
     req.set_request_uri( requestUri );
 
     rpsLimiter_.WaitForRequestAvailability( abort );
+    qwr::QwrException::ExpectTrue( !abort.is_aborting(), "Abort was signaled, canceling request..." );
 
     auto ctsToken = cts_.get_token();
     auto localCts = Concurrency::cancellation_token_source::create_linked_source( ctsToken );
@@ -373,12 +414,18 @@ web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri
         qwr::QwrException::ExpectTrue( retryInMsOpt.has_value(), "Request failed with 429 error, but does not contain a valid number in `Retry-After` header" );
 
         const auto retryIn = std::chrono::milliseconds( *retryInMsOpt ) + std::chrono::seconds( 1 );
-        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME ":\n"
+        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (error):\n"
                                  << fmt::format( L"Rate limit reached: retrying in {} ms", retryIn.count() );
         if ( !SleepFor( retryIn, abort ) )
         {
             break;
         }
+    }
+
+    if ( response.status_code() == 429 )
+    {
+        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (error):\n"
+                                 << fmt::format( L"Rate limit reached: retry failed" );
     }
 
     return response;
@@ -406,7 +453,7 @@ nlohmann::json WebApi_Backend::ParseResponse( const web::http::http_response& re
     }
 
     const auto responseJson = nlohmann::json::parse( response.extract_string().get() );
-    if ( shouldLogWebApi_ )
+    if ( shouldLogWebApiResponse_ )
     {
         FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): response:\n"
                                  << responseJson.dump( 2 );

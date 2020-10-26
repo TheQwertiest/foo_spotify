@@ -128,6 +128,7 @@
     <ClCompile Include="fb2k\file_info_filler.cpp" />
     <ClCompile Include="fb2k\input.cpp" />
     <ClCompile Include="fb2k\playback.cpp" />
+    <ClCompile Include="fb2k\playlist.cpp" />
     <ClCompile Include="fb2k\playlist_loader.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>

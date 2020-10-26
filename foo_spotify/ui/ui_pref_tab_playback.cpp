@@ -153,8 +153,8 @@ BOOL PreferenceTabPlayback::OnInitDialog( HWND hwndFocus, LPARAM lParam )
     }
     DoFullDdxToUi();
 
-    this->SetDlgItemInt( trackToEdit_.at( IDC_SLIDER_CACHE_MB ), trackCacheMb.GetPos(), false );
-    this->SetDlgItemInt( trackToEdit_.at( IDC_SLIDER_CACHE_PERCENT ), trackCachePercent.GetPos(), false );
+    this->SetDlgItemInt( IDC_EDIT_CACHE_MB, libspotify_cache_size_in_mb_, false );
+    this->SetDlgItemInt( IDC_EDIT_CACHE_PERCENT, libspotify_cache_size_in_percent_, false );
 
     suppressUiDdx_ = false;
 

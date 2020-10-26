@@ -100,7 +100,12 @@
     <ClCompile Include="ui\ui_pref_tab_playback.cpp">
       <Filter>ui</Filter>
     </ClCompile>
-    <ClCompile Include="utils\rps_limiter.cpp" />
+    <ClCompile Include="utils\rps_limiter.cpp">
+      <Filter>utils</Filter>
+    </ClCompile>
+    <ClCompile Include="fb2k\playlist.cpp">
+      <Filter>fb2k</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="component_defines.h" />

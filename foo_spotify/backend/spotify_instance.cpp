@@ -9,6 +9,7 @@
 #include <utils/abort_manager.h>
 
 #include <qwr/abort_callback.h>
+#include <qwr/thread_pool.h>
 
 namespace sptf
 {
@@ -47,6 +48,14 @@ void SpotifyInstance::Finalize()
     finalize( pWebApi_backend_ );
     finalize( pLibSpotify_backend_ );
     finalize( pAbortManager_ );
+    finalize( pThreadPool_ );
+}
+
+qwr::ThreadPool& SpotifyInstance::GetThreadPool()
+{
+    InitializeAll();
+    assert( pThreadPool_ );
+    return *pThreadPool_;
 }
 
 AbortManager& SpotifyInstance::GetAbortManager()
@@ -78,6 +87,10 @@ void SpotifyInstance::InitializeAll()
         throw qwr::QwrException( "foobar2000 is exiting" );
     }
 
+    if ( !pThreadPool_ )
+    {
+        pThreadPool_ = std::make_unique<qwr::ThreadPool>( "SPTF Worker", 2 );
+    }
     if ( !pAbortManager_ )
     {
         pAbortManager_ = std::make_unique<AbortManager>();

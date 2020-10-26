@@ -30,6 +30,11 @@ RpsLimiter::RpsLimiter( size_t limitPerSecond )
 
 void RpsLimiter::WaitForRequestAvailability( abort_callback& abort )
 {
+    if ( abort.is_aborting() )
+    {
+        return;
+    }
+
     auto& am = SpotifyInstance::Get().GetAbortManager();
     const auto abortableScope = am.GetAbortableScope( [&] {
         {

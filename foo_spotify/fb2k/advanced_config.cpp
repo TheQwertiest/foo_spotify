@@ -32,9 +32,14 @@ qwr::fb2k::AdvConfigString_MT network_proxy_password(
     sptf::guid::adv_var_network_proxy_password, sptf::guid::adv_branch_network, 2,
     "" );
 
-qwr::fb2k::AdvConfigBool_MT logging_webapi(
-    "Log Spotify Web API",
-    sptf::guid::adv_var_logging_webapi, sptf::guid::adv_branch_logging, 0,
+qwr::fb2k::AdvConfigBool_MT logging_webapi_request(
+    "Log Spotify Web API: request",
+    sptf::guid::adv_var_logging_webapi_request, sptf::guid::adv_branch_logging, 0,
+    false );
+
+qwr::fb2k::AdvConfigBool_MT logging_webapi_response(
+    "Log Spotify Web API: response",
+    sptf::guid::adv_var_logging_webapi_response, sptf::guid::adv_branch_logging, 0,
     false );
 
 } // namespace sptf::config::advanced

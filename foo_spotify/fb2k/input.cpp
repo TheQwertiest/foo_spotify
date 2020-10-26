@@ -208,7 +208,7 @@ void InputSpotify::open( service_ptr_t<file> m_file, const char* p_path, t_input
     trackMeta_ = waBackend.GetMetaForTracks( nonstd::span<const std::unique_ptr<const WebApi_Track>>( &track, 1 ) )[0];
 
     if ( p_reason == input_open_info_read )
-    { // don't use LibSpotify stuff if not required
+    { // don't use LibSpotify stuff if it's not needed
         return;
     }
 

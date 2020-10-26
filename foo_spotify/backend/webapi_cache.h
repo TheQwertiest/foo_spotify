@@ -59,6 +59,14 @@ public:
         qwr::file::WriteFile( filePath, nlohmann::json( object ).dump( 2 ) );
     }
 
+    bool IsCached_NonBlocking( const std::string& filename )
+    {
+        namespace fs = std::filesystem;
+
+        const auto filePath = GetCachedPath( filename );
+        return fs::exists( filePath );
+    }
+
 private:
     std::filesystem::path GetCachedPath( const std::string& filename ) const
     {
@@ -107,6 +115,12 @@ public:
     {
         std::lock_guard lock( cacheMutex_ );
         return jsonCache_.GetObjectFromCache_NonBlocking( id );
+    }
+
+    bool IsCached( const std::string& id )
+    {
+        std::lock_guard lock( cacheMutex_ );
+        return jsonCache_.IsCached_NonBlocking( id );
     }
 
 private:

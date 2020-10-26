@@ -45,7 +45,7 @@ BEGIN
             VALUE "FileDescription", SPTF_NAME " component for foobar2000"
             VALUE "FileVersion", SPTF_VERSION
             VALUE "InternalName", SPTF_DLL_NAME
-            VALUE "LegalCopyright", "Copyright (C) 2018-2019 Yuri Shutenko"
+            VALUE "LegalCopyright", "Copyright (C) 2020 Yuri Shutenko"
             VALUE "OriginalFilename", SPTF_DLL_NAME
             VALUE "ProductName", SPTF_NAME
             VALUE "ProductVersion", SPTF_VERSION

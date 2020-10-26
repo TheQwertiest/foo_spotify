@@ -18,12 +18,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fb2k_utils", "..\submodules\fb2k_utils\src\fb2k_utils.vcxproj", "{EE3BF4F9-2014-4CFF-96C8-44CFB85E0571}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6A9AA2D7-2F76-4BD1-80EE-87E4B9DA70DB}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{6A9AA2D7-2F76-4BD1-80EE-87E4B9DA70DB}"
 	ProjectSection(SolutionItems) = preProject
 		..\CHANGELOG.md = ..\CHANGELOG.md
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "submodules", "submodules", "{096E7B28-E3A6-4685-BA4F-F92FB4091EF2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -112,6 +114,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{E8091321-D79D-4575-86EF-064EA1A4A20D} = {096E7B28-E3A6-4685-BA4F-F92FB4091EF2}
+		{EBFFFB4E-261D-44D3-B89C-957B31A0BF9C} = {096E7B28-E3A6-4685-BA4F-F92FB4091EF2}
+		{71AD2674-065B-48F5-B8B0-E1F9D3892081} = {096E7B28-E3A6-4685-BA4F-F92FB4091EF2}
+		{EE3BF4F9-2014-4CFF-96C8-44CFB85E0571} = {096E7B28-E3A6-4685-BA4F-F92FB4091EF2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {869A994B-3306-4E73-A266-A14CF217581C}
