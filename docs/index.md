@@ -20,8 +20,9 @@ permalink: /
 This is a component for the [foobar2000](https://www.foobar2000.org) audio player, which allows to play tracks from Spotify.
 
 Features:
-- Import of albums and playlists.
-- Album art fetching.
+- Albums and playlists import.
+- Artist top tracks import.
+- Album art and artist image fetching.
 - [foo_acfu](https://acfu.3dyd.com) integration.
 
 ## Getting started!
@@ -45,6 +46,6 @@ Features:
 [todo]: https://github.com/TheQwertiest/foo_spotify/projects/1
 [version_badge]: https://img.shields.io/github/release/theqwertiest/foo_spotify.svg
 [appveyor_badge]: https://ci.appveyor.com/api/projects/status/t5bhoxmfgavhq81m/branch/master?svg=true
-[codacy_badge]: https://api.codacy.com/project/badge/Grade/319298ca5bd64a739d1e70e3e27d59ab
+[codacy_badge]: https://api.codacy.com/project/badge/Grade/4eb6766e68ef4612bb2b131c0a9786e3
 [codefactor_badge]: https://www.codefactor.io/repository/github/theqwertiest/foo_spotify/badge/master
 
