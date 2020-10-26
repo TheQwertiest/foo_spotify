@@ -45,7 +45,7 @@ using namespace sptf;
 namespace
 {
 
-constexpr wchar_t k_clientId[] = L"56b24aee069c4de2937c5e359de82b93";
+constexpr wchar_t k_clientId[] = L"30826243a65f43f19b038fd65ffaa8b5";
 
 } // namespace
 
