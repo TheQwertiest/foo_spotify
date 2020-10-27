@@ -10,6 +10,9 @@
 ___
 
 ## [Unreleased][]
+### Changed
+- Better Web API handling in attempt to avoid 429 errors:
+  - Pre-emptive batch artist update on playlist import ([#32](https://github.com/TheQwertiest/foo_spotify/issues/32)).
 
 ## [1.1.0][] - 2020-10-26
 ### Added

@@ -119,6 +119,15 @@ GetTracks( const SpotifyObject spotifyObject, abort_callback& p_abort )
     else if ( spotifyObject.type == "playlist" )
     {
         auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
+
+        const auto artistIds =
+            tracks
+            | ranges::views::transform( []( const auto& pTrack ) -> std::string { return pTrack->artists[0]->id; } )
+            | ranges::to_vector;
+
+        // pre-cache artists
+        waBackend.RefreshCacheForArtists( artistIds, p_abort );
+
         // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
         return { std::move( tracks ), TransformToSkippedTracks( localTracks ) };
     }

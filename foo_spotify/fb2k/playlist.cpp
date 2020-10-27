@@ -116,7 +116,7 @@ void PlaylistCallbackSpotify::on_playlist_activate( t_size p_old, t_size p_new )
         {
             auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
 
-            // cache tracks
+            // pre-cache tracks
             qwr::TimedAbortCallback tac1;
             const auto tracks = waBackend.GetTracks( trackIds, tac1 );
 
@@ -125,7 +125,7 @@ void PlaylistCallbackSpotify::on_playlist_activate( t_size p_old, t_size p_new )
                 | ranges::views::transform( []( const auto& pTrack ) -> std::string { return pTrack->artists[0]->id; } )
                 | ranges::to_vector;
 
-            // cache artists
+            // pre-cache artists
             qwr::TimedAbortCallback tac2;
             waBackend.RefreshCacheForArtists( artistIds, tac2 );
         }
