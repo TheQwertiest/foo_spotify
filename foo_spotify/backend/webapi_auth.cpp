@@ -297,17 +297,18 @@ void WebApiAuthorizer::AuthenticateClean( const WebApiAuthScopes& scopes, std::f
 
     // <https://developer.spotify.com/documentation/general/guides/authorization-guide/#authorization-code-flow-with-proof-key-for-code-exchange-pkce>
 
-    web::uri_builder builder( url::accountsAuthenticate );
-    builder.append_query( L"client_id", web::uri::encode_data_string( k_clientId ), false );
-    builder.append_query( L"response_type", L"code" );
-    builder.append_query( L"redirect_uri", web::uri::encode_data_string( url::redirectUri ), false );
-    builder.append_query( L"code_challenge_method", L"S256" );
     codeVerifier_ = GenerateCodeVerifier();
-    const auto challengeCode = GenerateChallengeCode( codeVerifier_ );
-    builder.append_query( L"code_challenge", challengeCode );
+
+    web::uri_builder builder( url::accountsAuthenticate );
+    builder
+        .append_query( L"client_id", web::uri::encode_data_string( k_clientId ), false )
+        .append_query( L"response_type", L"code" )
+        .append_query( L"redirect_uri", web::uri::encode_data_string( url::redirectUri ), false )
+        .append_query( L"code_challenge_method", L"S256" )
+        .append_query( L"code_challenge", GenerateChallengeCode( codeVerifier_ ) )
+        .append_query( L"scope", web::uri::encode_data_string( scopes.ToWebString() ), false );
     // TODO: cookie?
     // builder.append_query( L"state", L"azaza" );
-    builder.append_query( L"scope", web::uri::encode_data_string( scopes.ToWebString() ), false );
 
     OpenAuthConfirmationInBrowser( builder.to_string() );
 }
@@ -333,9 +334,10 @@ void WebApiAuthorizer::UpdateRefreshToken_NonBlocking( abort_callback& abort )
     }
 
     web::uri_builder builder;
-    builder.append_query( L"grant_type", L"refresh_token" );
-    builder.append_query( L"refresh_token", pAuthData_->refreshToken );
-    builder.append_query( L"client_id", web::uri::encode_data_string( k_clientId ), false );
+    builder
+        .append_query( L"grant_type", L"refresh_token" )
+        .append_query( L"refresh_token", pAuthData_->refreshToken )
+        .append_query( L"client_id", web::uri::encode_data_string( k_clientId ), false );
 
     web::http::http_request req( web::http::methods::POST );
     req.headers().set_content_type( L"application/x-www-form-urlencoded" );
@@ -370,11 +372,12 @@ pplx::task<void> WebApiAuthorizer::CompleteAuthentication( const std::wstring& r
     qwr::QwrException::ExpectTrue( data.count( L"code" ), L"Malformed authentication response: missing `code`" );
 
     web::uri_builder builder;
-    builder.append_query( L"client_id", k_clientId );
-    builder.append_query( L"grant_type", L"authorization_code" );
-    builder.append_query( L"code", data.at( L"code" ) );
-    builder.append_query( L"redirect_uri", web::uri::encode_data_string( url::redirectUri ), false );
-    builder.append_query( L"code_verifier", codeVerifier_, false );
+    builder
+        .append_query( L"client_id", k_clientId )
+        .append_query( L"grant_type", L"authorization_code" )
+        .append_query( L"code", data.at( L"code" ) )
+        .append_query( L"redirect_uri", web::uri::encode_data_string( url::redirectUri ), false )
+        .append_query( L"code_verifier", codeVerifier_, false );
 
     web::http::http_request req( web::http::methods::POST );
     req.headers().set_content_type( L"application/x-www-form-urlencoded" );

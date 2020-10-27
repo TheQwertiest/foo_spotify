@@ -4,6 +4,7 @@
 
 #include <backend/webapi_auth.h>
 #include <backend/webapi_objects/webapi_media_objects.h>
+#include <backend/webapi_objects/webapi_paging_object.h>
 #include <backend/webapi_objects/webapi_user.h>
 #include <fb2k/advanced_config.h>
 #include <utils/abort_manager.h>
@@ -87,19 +88,22 @@ std::unique_ptr<const sptf::WebApi_User> WebApi_Backend::GetUser( abort_callback
 
 void WebApi_Backend::RefreshCacheForTracks( nonstd::span<const std::string> trackIds, abort_callback& abort )
 {
+    constexpr size_t kMaxItemsPerRequest = 50;
+
     // remove duplicates
     const auto uniqueIds = trackIds | ranges::to<std::unordered_set<std::string>>;
 
     for ( const auto& trackIdsChunk:
           uniqueIds
               | ranges::views::remove_if( [&]( const auto& id ) { return trackCache_.IsCached( id ); } )
-              | ranges::views::chunk( 50 ) )
+              | ranges::views::chunk( kMaxItemsPerRequest ) )
     {
         const auto trackIdsStr = qwr::unicode::ToWide( qwr::string::Join( trackIdsChunk | ranges::to_vector, ',' ) );
 
         web::uri_builder builder;
-        builder.append_path( L"tracks" );
-        builder.append_query( L"ids", trackIdsStr );
+        builder
+            .append_path( L"tracks" )
+            .append_query( L"ids", trackIdsStr );
 
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         const auto tracksIt = responseJson.find( "tracks" );
@@ -124,8 +128,9 @@ WebApi_Backend::GetTrack( const std::string& trackId, abort_callback& abort, boo
     else
     {
         web::uri_builder builder;
-        builder.append_path( L"tracks" );
-        builder.append_path( qwr::unicode::ToWide( trackId ) );
+        builder
+            .append_path( L"tracks" )
+            .append_path( qwr::unicode::ToWide( trackId ) );
         if ( useRelink )
         {
             if ( const auto countryOpt = GetUser( abort )->country;
@@ -163,25 +168,25 @@ std::tuple<
     std::vector<std::unique_ptr<const WebApi_LocalTrack>>>
 WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_callback& abort )
 {
-    size_t offset = 0;
+    constexpr size_t kMaxItemsPerRequest = 100;
+
+    auto requestUri = [&] {
+        web::uri_builder builder;
+        builder
+            .append_path( fmt::format( L"playlists/{}/tracks", qwr::unicode::ToWide( playlistId ) ) )
+            .append_query( L"limit", kMaxItemsPerRequest, false );
+
+        return builder.to_uri();
+    }();
 
     std::vector<std::unique_ptr<const WebApi_Track>> tracks;
     std::vector<std::unique_ptr<const WebApi_LocalTrack>> localTracks;
     while ( true )
     {
-        web::uri_builder builder;
-        builder.append_path( fmt::format( L"playlists/{}/tracks", qwr::unicode::ToWide( playlistId ) ) );
-        builder.append_query( L"limit", 100, false );
-        builder.append_query( L"offset", offset, false );
-        offset += 100;
+        const auto responseJson = GetJsonResponse( requestUri, abort );
+        const auto pPagingObject = responseJson.get<std::unique_ptr<const WebApi_PagingObject>>();
 
-        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
-
-        const auto itemsIt = responseJson.find( "items" );
-        qwr::QwrException::ExpectTrue( responseJson.cend() != itemsIt,
-                                       L"Malformed track data response response: missing `items`" );
-
-        auto playlistTracks = itemsIt->get<std::vector<std::unique_ptr<WebApi_PlaylistTrack>>>();
+        auto playlistTracks = pPagingObject->items.get<std::vector<std::unique_ptr<WebApi_PlaylistTrack>>>();
         for ( auto& playlistTrack: playlistTracks )
         {
             std::visit( [&]( auto&& arg ) {
@@ -202,10 +207,12 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
                         *playlistTrack->track );
         }
 
-        if ( responseJson.at( "next" ).is_null() )
+        if ( !pPagingObject->next )
         {
             break;
         }
+
+        requestUri = *pPagingObject->next;
     }
 
     trackCache_.CacheObjects( tracks );
@@ -215,38 +222,43 @@ WebApi_Backend::GetTracksFromPlaylist( const std::string& playlistId, abort_call
 std::vector<std::unique_ptr<const sptf::WebApi_Track>>
 WebApi_Backend::GetTracksFromAlbum( const std::string& albumId, abort_callback& abort )
 {
-    auto album = [&] {
-        web::uri_builder builder;
-        builder.append_path( fmt::format( L"albums/{}", qwr::unicode::ToWide( albumId ) ) );
-
-        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
-        return responseJson.get<std::shared_ptr<WebApi_Album_Simplified>>();
-    }();
-
-    size_t offset = 0;
-
+    std::shared_ptr<WebApi_Album_Simplified> album;
+    web::uri requestUri;
     std::vector<std::unique_ptr<WebApi_Track_Simplified>> ret;
     while ( true )
     {
-        web::uri_builder builder;
-        builder.append_path( fmt::format( L"albums/{}/tracks", qwr::unicode::ToWide( albumId ) ) );
-        builder.append_query( L"limit", 50, false );
-        builder.append_query( L"offset", offset, false );
-        offset += 50;
+        const auto responseJson = [&] {
+            if ( requestUri.is_empty() )
+            { // first paging object (and uri) is retrieved from album
+                web::uri_builder builder;
+                builder.append_path( fmt::format( L"albums/{}", qwr::unicode::ToWide( albumId ) ) );
 
-        const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+                const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
+                responseJson.get_to( album );
 
-        const auto itemsIt = responseJson.find( "items" );
-        qwr::QwrException::ExpectTrue( responseJson.cend() != itemsIt,
-                                       L"Malformed track data response response: missing `items`" );
+                const auto tracksIt = responseJson.find( "tracks" );
+                qwr::QwrException::ExpectTrue( responseJson.cend() != tracksIt,
+                                               L"Malformed track data response: missing `tracks`" );
 
-        auto newData = itemsIt->get<std::vector<std::unique_ptr<WebApi_Track_Simplified>>>();
+                return *tracksIt;
+            }
+            else
+            {
+                return GetJsonResponse( requestUri, abort );
+            }
+        }();
+
+        const auto pPagingObject = responseJson.get<std::unique_ptr<const WebApi_PagingObject>>();
+
+        auto newData = pPagingObject->items.get<std::vector<std::unique_ptr<WebApi_Track_Simplified>>>();
         ret.insert( ret.end(), make_move_iterator( newData.begin() ), make_move_iterator( newData.end() ) );
 
-        if ( responseJson.at( "next" ).is_null() )
+        if ( !pPagingObject->next )
         {
             break;
         }
+
+        requestUri = *pPagingObject->next;
     }
 
     auto newRet = ranges::views::transform( ret, [&]( auto&& elem ) {
@@ -266,10 +278,11 @@ WebApi_Backend::GetTopTracksForArtist( const std::string& artistId, abort_callba
                                    "Re-login to update your permission scope." );
 
     web::uri_builder builder;
-    builder.append_path( L"artists" );
-    builder.append_path( qwr::unicode::ToWide( artistId ) );
-    builder.append_path( L"top-tracks" );
-    builder.append_query( L"market", qwr::unicode::ToWide( *countryOpt ) );
+    builder
+        .append_path( L"artists" )
+        .append_path( qwr::unicode::ToWide( artistId ) )
+        .append_path( L"top-tracks" )
+        .append_query( L"market", qwr::unicode::ToWide( *countryOpt ) );
 
     const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
 
@@ -331,8 +344,9 @@ void WebApi_Backend::RefreshCacheForArtists( nonstd::span<const std::string> art
         const auto idsStr = qwr::unicode::ToWide( qwr::string::Join( idsChunk | ranges::to_vector, ',' ) );
 
         web::uri_builder builder;
-        builder.append_path( L"artists" );
-        builder.append_query( L"ids", idsStr );
+        builder
+            .append_path( L"artists" )
+            .append_query( L"ids", idsStr );
 
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         const auto artistsIt = responseJson.find( "artists" );
@@ -355,8 +369,9 @@ WebApi_Backend::GetArtist( const std::string& artistId, abort_callback& abort )
     else
     {
         web::uri_builder builder;
-        builder.append_path( L"artists" );
-        builder.append_path( qwr::unicode::ToWide( artistId ) );
+        builder
+            .append_path( L"artists" )
+            .append_path( qwr::unicode::ToWide( artistId ) );
 
         const auto responseJson = GetJsonResponse( builder.to_uri(), abort );
         auto ret = responseJson.get<std::unique_ptr<const WebApi_Artist>>();
@@ -403,10 +418,23 @@ nlohmann::json WebApi_Backend::GetJsonResponse( const web::uri& requestUri, abor
 
 web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri, abort_callback& abort )
 {
+    const auto adjustedRequestUri = [&] {
+        const auto uriStr = requestUri.to_string();
+        const auto baseUriStr = client_.base_uri().to_string();
+        if ( uriStr._Starts_with( baseUriStr ) )
+        {
+            return web::uri{ uriStr.data() + baseUriStr.size() };
+        }
+        else
+        {
+            return requestUri;
+        }
+    }();
+
     if ( shouldLogWebApiRequest_ )
     {
         FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug): request:\n"
-                                 << qwr::unicode::ToU8( requestUri.to_string() );
+                                 << qwr::unicode::ToU8( adjustedRequestUri.to_string() );
     }
 
     web::http::http_request req( web::http::methods::GET );
@@ -414,7 +442,7 @@ web::http::http_response WebApi_Backend::GetResponse( const web::uri& requestUri
     req.headers().add( L"Accept", L"application/json" );
     req.headers().set_content_type( L"application/json" );
 
-    req.set_request_uri( requestUri );
+    req.set_request_uri( adjustedRequestUri );
 
     rpsLimiter_.WaitForRequestAvailability( abort );
     qwr::QwrException::ExpectTrue( !abort.is_aborting(), "Abort was signaled, canceling request..." );

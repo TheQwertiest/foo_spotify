@@ -113,6 +113,7 @@
     <ClCompile Include="backend\webapi_objects\webapi_album.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_artist.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_image.cpp" />
+    <ClCompile Include="backend\webapi_objects\webapi_paging_object.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_playlist_track.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_restriction.cpp" />
     <ClCompile Include="backend\webapi_objects\webapi_track.cpp" />
@@ -158,6 +159,7 @@
     <ClInclude Include="backend\webapi_objects\webapi_album.h" />
     <ClInclude Include="backend\webapi_objects\webapi_artist.h" />
     <ClInclude Include="backend\webapi_objects\webapi_media_objects.h" />
+    <ClInclude Include="backend\webapi_objects\webapi_paging_object.h" />
     <ClInclude Include="backend\webapi_objects\webapi_playlist_track.h" />
     <ClInclude Include="backend\webapi_objects\webapi_restriction.h" />
     <ClInclude Include="backend\webapi_objects\webapi_track.h" />

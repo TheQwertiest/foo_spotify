@@ -64,8 +64,8 @@ void RpsLimiter::WaitForRequestAvailability( abort_callback& abort )
 
     while ( true )
     {
-        FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug):\n"
-                                 << fmt::format( "throttling for {} milliseconds", timeDiff.count() );
+        // FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug):\n"
+        //                          << fmt::format( "throttling for {} milliseconds", timeDiff.count() );
 
         bool hasEvent = cv_.wait_for( lock, timeDiff, [&] {
             return timeToDie_ || ( incomingRequests_.front() == requestIdx );
