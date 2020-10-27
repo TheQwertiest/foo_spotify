@@ -92,7 +92,6 @@ namespace
 
 struct SkippedTrack
 {
-
     std::string name;
     std::string reason;
 };
@@ -102,7 +101,7 @@ TransformToSkippedTracks( nonstd::span<const std::unique_ptr<const WebApi_LocalT
 {
     return ranges::views::transform( tracks,
                                      [&]( const auto& pTrack ) -> SkippedTrack {
-                                         return { ( pTrack->name ? *pTrack->name : pTrack->id ), "local track" };
+                                         return { ( pTrack->name ? *pTrack->name : pTrack->uri ), "local track" };
                                      } )
            | ranges::to_vector;
 }

@@ -28,6 +28,6 @@ void from_json( const nlohmann::json& j, WebApi_PlaylistTrack& p )
     }
 }
 
-SPTF_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE( WebApi_LocalTrack, id, name );
+SPTF_NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE( WebApi_LocalTrack, uri, name );
 
 } // namespace sptf

@@ -11,7 +11,7 @@ struct WebApi_Track;
 
 struct WebApi_LocalTrack
 {
-    std::string id;
+    std::string uri;
     std::optional<std::string> name;
 };
 
