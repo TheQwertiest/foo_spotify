@@ -111,23 +111,28 @@ GetTracks( const SpotifyObject spotifyObject, abort_callback& p_abort )
 {
     auto& waBackend = SpotifyInstance::Get().GetWebApi_Backend();
 
-    if ( spotifyObject.type == "album" )
-    {
-        return { waBackend.GetTracksFromAlbum( spotifyObject.id, p_abort ), std::vector<SkippedTrack>{} };
-    }
-    else if ( spotifyObject.type == "playlist" )
-    {
-        auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
-
+    const auto preCacheArtists = [&waBackend]( const auto& tracks, auto& p_abort ) {
         const auto artistIds =
             tracks
             | ranges::views::transform( []( const auto& pTrack ) -> std::string { return pTrack->artists[0]->id; } )
             | ranges::to_vector;
 
-        // pre-cache artists
         waBackend.RefreshCacheForArtists( artistIds, p_abort );
+    };
 
-        // ??? Dunno why this is required. Smth to do with structureed bindings and RVO.
+    if ( spotifyObject.type == "album" )
+    {
+        auto tracks = waBackend.GetTracksFromAlbum( spotifyObject.id, p_abort );
+        preCacheArtists( tracks, p_abort );
+
+        return { std::move( tracks ), std::vector<SkippedTrack>{} };
+    }
+    else if ( spotifyObject.type == "playlist" )
+    {
+        auto [tracks, localTracks] = waBackend.GetTracksFromPlaylist( spotifyObject.id, p_abort );
+        preCacheArtists( tracks, p_abort );
+
+        // ??? Dunno why this is required. Smth to do with structured bindings and RVO.
         return { std::move( tracks ), TransformToSkippedTracks( localTracks ) };
     }
     else if ( spotifyObject.type == "artist" )
@@ -138,12 +143,14 @@ GetTracks( const SpotifyObject spotifyObject, abort_callback& p_abort )
     {
         std::vector<std::unique_ptr<const WebApi_Track>> tmp;
         tmp.emplace_back( waBackend.GetTrack( spotifyObject.id, p_abort ) );
+
         return { std::move( tmp ), std::vector<SkippedTrack>{} };
     }
     else if ( spotifyObject.type == "local" )
     {
         std::vector<SkippedTrack> tmp;
         tmp.emplace_back( SkippedTrack{ spotifyObject.id, "local track" } );
+
         return { std::vector<std::unique_ptr<const sptf::WebApi_Track>>{}, tmp };
     }
     else
