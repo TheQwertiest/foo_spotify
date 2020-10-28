@@ -11,5 +11,6 @@ extern qwr::fb2k::AdvConfigString_MT network_proxy_password;
 
 extern qwr::fb2k::AdvConfigBool_MT logging_webapi_request;
 extern qwr::fb2k::AdvConfigBool_MT logging_webapi_response;
+extern qwr::fb2k::AdvConfigBool_MT logging_webapi_debug;
 
 } // namespace sptf::config::advanced

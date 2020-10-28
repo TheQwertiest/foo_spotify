@@ -39,7 +39,12 @@ qwr::fb2k::AdvConfigBool_MT logging_webapi_request(
 
 qwr::fb2k::AdvConfigBool_MT logging_webapi_response(
     "Log Spotify Web API: response",
-    sptf::guid::adv_var_logging_webapi_response, sptf::guid::adv_branch_logging, 0,
+    sptf::guid::adv_var_logging_webapi_response, sptf::guid::adv_branch_logging, 1,
+    false );
+
+qwr::fb2k::AdvConfigBool_MT logging_webapi_debug(
+    "Log Spotify Web API: debug",
+    sptf::guid::adv_var_logging_webapi_debug, sptf::guid::adv_branch_logging, 2,
     false );
 
 } // namespace sptf::config::advanced

@@ -4,6 +4,7 @@
 #include "rps_limiter.h"
 
 #include <backend/spotify_instance.h>
+#include <fb2k/advanced_config.h>
 #include <utils/abort_manager.h>
 #include <utils/sleeper.h>
 
@@ -22,8 +23,11 @@ std::chrono::milliseconds GetTimestampInMs()
 namespace sptf
 {
 
-RpsLimiter::RpsLimiter( size_t limitPerSecond )
-    : timeStampsContainer_( limitPerSecond, GetTimestampInMs() - std::chrono::seconds( 2 ) )
+RpsLimiter::RpsLimiter( size_t limit, std::chrono::seconds limitPeriod )
+    : shouldLogWebApiDebug_( config::advanced::logging_webapi_debug )
+    , limitPeriod_( limitPeriod )
+    , limitCount_( limit )
+    , timeStampsContainer_( limit, GetTimestampInMs() - 2 * limitPeriod )
     , timeStamps_( timeStampsContainer_.begin(), timeStampsContainer_.end(), timeStampsContainer_.begin(), timeStampsContainer_.size() )
 {
 }
@@ -35,12 +39,10 @@ void RpsLimiter::WaitForRequestAvailability( abort_callback& abort )
         return;
     }
 
+    std::atomic_bool timeToDie = false;
     auto& am = SpotifyInstance::Get().GetAbortManager();
     const auto abortableScope = am.GetAbortableScope( [&] {
-        {
-            std::lock_guard lock( mutex_ );
-            timeToDie_ = true;
-        }
+        timeToDie = true;
         cv_.notify_all();
     },
                                                       abort );
@@ -48,12 +50,14 @@ void RpsLimiter::WaitForRequestAvailability( abort_callback& abort )
     std::unique_lock lock( mutex_ );
 
     const auto nowInMs = GetTimestampInMs();
-    auto timeDiff = nowInMs - timeStamps_.front();
-    if ( timeDiff > std::chrono::seconds( 1 ) )
+    auto nextAvailableTime = timeStamps_.front() + limitPeriod_;
+    if ( incomingRequests_.empty() && nowInMs >= nextAvailableTime )
     {
         timeStamps_.emplace_back( nowInMs );
         return;
     }
+
+    auto waitTime = nextAvailableTime - nowInMs;
 
     const auto requestIdx = curRequestIdx_++;
     incomingRequests_.emplace_back( requestIdx );
@@ -64,19 +68,27 @@ void RpsLimiter::WaitForRequestAvailability( abort_callback& abort )
 
     while ( true )
     {
-        // FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug):\n"
-        //                          << fmt::format( "throttling for {} milliseconds", timeDiff.count() );
+        if ( shouldLogWebApiDebug_ )
+        {
+            FB2K_console_formatter() << SPTF_UNDERSCORE_NAME " (debug):\n"
+                                     << fmt::format( "throttling for {} milliseconds", waitTime.count() );
+        }
 
-        bool hasEvent = cv_.wait_for( lock, timeDiff, [&] {
-            return timeToDie_ || ( incomingRequests_.front() == requestIdx );
+        bool hasEvent = cv_.wait_for( lock, waitTime, [&] {
+            return timeToDie || ( incomingRequests_.front() == requestIdx && GetTimestampInMs() >= nextAvailableTime );
         } );
 
         if ( hasEvent )
         {
+            if ( !timeToDie )
+            {
+                timeStamps_.emplace_back( GetTimestampInMs() );
+            }
             return;
         }
 
-        timeDiff = GetTimestampInMs() - timeStamps_.front();
+        nextAvailableTime = GetTimestampInMs() + limitPeriod_ / limitCount_;
+        waitTime = limitPeriod_ / limitCount_;
     }
 }
 

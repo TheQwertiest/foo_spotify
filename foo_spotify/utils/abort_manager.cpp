@@ -74,7 +74,11 @@ void AbortManager::EventLoop()
     while ( true )
     {
         std::unique_lock lock( mutex_ );
-        eventCv_.wait_for( lock, std::chrono::seconds( 2 ), [&] { return ( isTimeToDie_ || !abortToIds_.empty() ); } );
+
+        do
+        {
+            eventCv_.wait_for( lock, std::chrono::seconds( 2 ) );
+        } while ( !isTimeToDie_ && abortToIds_.empty() );
 
         if ( isTimeToDie_ )
         {
@@ -85,11 +89,11 @@ void AbortManager::EventLoop()
             return;
         }
 
-        for ( const auto [pAbort, ids]: abortToIds_ )
+        for ( const auto& [pAbort, ids]: abortToIds_ )
         {
             if ( pAbort->is_aborting() )
             {
-                for ( const auto id: ranges::views::reverse( ids ) )
+                for ( const auto& id: ranges::views::reverse( ids ) )
                 {
                     assert( idToTask_.count( id ) );
                     std::invoke( *( idToTask_[id].task ) );
