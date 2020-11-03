@@ -108,7 +108,7 @@ private:
     std::mutex loginMutex_;
     std::condition_variable loginCv_;
     LoginStatus loginStatus_ = LoginStatus::uninitialized;
-    bool isLoginBad_;
+    bool isLoginBad_ = false;
 
     AudioBuffer audioBuffer_;
 };
