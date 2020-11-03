@@ -7,7 +7,7 @@ permalink: /
 
 # Spotify Integration
 {: .no_toc }
-[![version][version_badge]][changelog] [![Build status][appveyor_badge]](https://ci.appveyor.com/project/TheQwertiest/foo-spotify/branch/master) [![CodeFactor][codefactor_badge]](https://www.codefactor.io/repository/github/theqwertiest/foo_spotify/overview/master) [![Codacy Badge][codacy_badge]](https://app.codacy.com/app/qwertiest/foo_spotify?utm_source=github.com&utm_medium=referral&utm_content=TheQwertiest/foo_spotify&utm_campaign=Badge_Grade_Dashboard) 
+[![version][version_badge]][changelog] [![Build status][appveyor_badge]](https://ci.appveyor.com/project/TheQwertiest/foo-spotify/branch/master) [![CodeFactor][codefactor_badge]](https://www.codefactor.io/repository/github/theqwertiest/foo_spotify/overview/master) [![Codacy Badge][codacy_badge]](https://www.codacy.com/gh/TheQwertiest/foo_spotify/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=TheQwertiest/foo_spotify&amp;utm_campaign=Badge_Grade) 
 
 ## Table of contents
 {: .no_toc .text-delta }
@@ -46,6 +46,6 @@ Features:
 [todo]: https://github.com/TheQwertiest/foo_spotify/projects/1
 [version_badge]: https://img.shields.io/github/release/theqwertiest/foo_spotify.svg
 [appveyor_badge]: https://ci.appveyor.com/api/projects/status/t5bhoxmfgavhq81m/branch/master?svg=true
-[codacy_badge]: https://api.codacy.com/project/badge/Grade/4eb6766e68ef4612bb2b131c0a9786e3
+[codacy_badge]: https://app.codacy.com/project/badge/Grade/c2d3b3a99ce640ad8c1512784e15910f
 [codefactor_badge]: https://www.codefactor.io/repository/github/theqwertiest/foo_spotify/badge/master
 
