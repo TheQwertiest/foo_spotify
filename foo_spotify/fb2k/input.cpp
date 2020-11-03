@@ -391,7 +391,7 @@ void InputSpotify::decode_seek( double p_seconds, abort_callback& p_abort )
     isFirstBlock_ = true;
 
     auto& lsBackend = GetInitializedLibSpotify();
-    lsBackend.GetAudioBuffer().clear(); // TODO: remove?
+    lsBackend.GetAudioBuffer().clear();
     auto pSession = lsBackend.GetInitializedSpSession( p_abort );
     lsBackend.ExecSpMutex( [&] {
         sp_session_player_seek( pSession, static_cast<int>( p_seconds * 1000 ) );

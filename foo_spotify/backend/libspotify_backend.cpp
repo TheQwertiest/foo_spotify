@@ -544,6 +544,14 @@ int LibSpotify_Backend::music_delivery( const sp_audioformat* format, const void
         return 0;
     }
 
+    assert( frames );
+    if ( num_frames == 22050 && !*(uint16_t*)frames )
+    {   // a dirty hack to remove a 1 seconds silence that libspotify pads the end of a track with
+        // See: https://github.com/mopidy/mopidy-spotify/pull/269
+        // and https://stackoverflow.com/questions/26014520/libspotify-c-sending-zeros-at-the-end-of-track
+        return num_frames;
+    }
+
     if ( !audioBuffer_.write( AudioBuffer::AudioChunkHeader{ (uint16_t)format->sample_rate,
                                                              (uint16_t)format->channels,
                                                              ( uint16_t )( num_frames * format->channels ) },
@@ -562,6 +570,9 @@ void LibSpotify_Backend::end_of_track()
 
 void LibSpotify_Backend::play_token_lost()
 {
+    ::fb2k::inMainThread2( [&] {
+        playback_control::get()->pause( true );
+    } );
     qwr::ReportErrorWithPopup( SPTF_NAME, "Playback has been paused because your Spotify account is being used somewhere else." );
 }
 
