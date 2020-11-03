@@ -12,12 +12,22 @@ ___
 
 ## [Unreleased][]
 
+### Added
+- Pre-emptive batch artist update on album import ([#36](https://github.com/TheQwertiest/foo_spotify/issues/36)).
+
+### Fixed
+- Unreasonably high CPU usage in some scenarios ([#35](https://github.com/TheQwertiest/foo_spotify/issues/35)).
+- Rps limiter is not working ([#34](https://github.com/TheQwertiest/foo_spotify/issues/34)).
+- Extra silence at the end of track ([#33](https://github.com/TheQwertiest/foo_spotify/issues/33)).
+
 ## [1.1.1][] - 2020-10-27
+
 ### Changed
 - Better Web API handling in attempt to avoid 429 errors:
   - Pre-emptive batch artist update on playlist import ([#32](https://github.com/TheQwertiest/foo_spotify/issues/32)).
 
 ## [1.1.0][] - 2020-10-26
+
 ### Added
 - *Play* the artist: adds top tracks for the artist ([#15](https://github.com/TheQwertiest/foo_spotify/issues/15)).
 - `%codec%` metadata field ([#14](https://github.com/TheQwertiest/foo_spotify/issues/14)).
