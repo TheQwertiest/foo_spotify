@@ -15,8 +15,9 @@ ___
 
 ## [1.1.2][] - 2020-11-03
 
-### Added
-- Pre-emptive batch artist update on album import ([#36](https://github.com/TheQwertiest/foo_spotify/issues/36)).
+### Changed
+- Better Web API handling in attempt to avoid 429 errors:
+  - Pre-emptive batch artist update on album import ([#36](https://github.com/TheQwertiest/foo_spotify/issues/36)).
 
 ### Fixed
 - Unreasonably high CPU usage in some scenarios ([#35](https://github.com/TheQwertiest/foo_spotify/issues/35)).
