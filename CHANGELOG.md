@@ -17,7 +17,7 @@ ___
 ## [1.1.3][] - 2021-02-18
 
 ### Fixed
-- Fixed broken import-by-URL handling ([#37](https://github.com/TheQwertiest/foo_spotify/issues/37)).
+- Fixed broken import-by-URL handling ([#47](https://github.com/TheQwertiest/foo_spotify/issues/47)).
 - Fixed some issues with keyboard navigation in component menu in Preferences.
 
 ## [1.1.2][] - 2020-11-03
