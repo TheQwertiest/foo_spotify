@@ -2,6 +2,7 @@
 
 #### Table of Contents
 - [Unreleased](#unreleased)
+- [1.1.3](#113---2021-02-18)
 - [1.1.2](#112---2020-11-03)
 - [1.1.1](#111---2020-10-27)
 - [1.1.0](#110---2020-10-26)
@@ -12,6 +13,8 @@
 ___
 
 ## [Unreleased][]
+
+## [1.1.3][] - 2021-02-18
 
 ### Fixed
 - Fixed broken import-by-URL handling ([#37](https://github.com/TheQwertiest/foo_spotify/issues/37)).
@@ -78,7 +81,8 @@ ___
 ## [1.0.0][] - 2020-10-02
 Initial release.
 
-[unreleased]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.2...HEAD
+[unreleased]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.3...HEAD
+[1.1.3]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.2...v1.1.3
 [1.1.2]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.1...v1.1.2
 [1.1.1]: https://github.com/TheQwertiest/foo_spotify/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/TheQwertiest/foo_spotify/compare/v1.0.2...v1.1.0
