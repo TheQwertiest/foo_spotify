@@ -234,8 +234,15 @@ bool PlaylistLoaderSpotify::can_write()
 
 bool PlaylistLoaderSpotify::is_our_content_type( const char* p_content_type )
 {
-    constexpr auto mime = "text/html; charset=UTF-8"sv;
-    return ( mime == p_content_type );
+    constexpr auto mime = "text/html; charset=utf-8"sv;
+    const auto lowerContentType = [&p_content_type]() {
+        // Content type should not contain anything other than ASCII
+        return std::string_view{ p_content_type }
+               | ranges::views::transform( []( auto i ) { return static_cast<char>( ::tolower( i ) ); } )
+               | ranges::to<std::string>;
+    }();
+
+    return ( mime == lowerContentType );
 }
 
 bool PlaylistLoaderSpotify::is_associatable()
