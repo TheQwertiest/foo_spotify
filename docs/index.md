@@ -17,6 +17,8 @@ permalink: /
 
 ---
 
+**!!! This component is no longer being developed. See [#68](https://github.com/TheQwertiest/foo_spotify/issues/68) for more info !!!**
+
 This is a component for the [foobar2000](https://www.foobar2000.org) audio player, which allows to play tracks from Spotify.
 
 Features:
